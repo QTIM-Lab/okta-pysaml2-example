@@ -30,7 +30,7 @@ $ sudo yum install libffi-devel xmlsec1 xmlsec1-openssl
 # Installation
 
 ```shell
-$ virtualenv venv
+$ python3.7 -m venv ./venv
 $ source venv/bin/activate
 $ pip install -r requirements.txt 
 ```
