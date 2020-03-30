@@ -71,6 +71,10 @@ logging.basicConfig(level=logging.DEBUG)
 #   from your system's user store.
 user_store = {'bbearce@gmail.com': {}} # {'FirstName':'Benjamin','LastName':'Bearce'}}
 
+from models import db
+db.init_app(app)
+
+
 
 def saml_client_for(idp_name=None):
     '''
@@ -150,6 +154,11 @@ def load_user(user_id):
 @app.route("/")
 def main_page():
     return render_template('main_page.html', idp_dict=metadata_url_for)
+
+@app.route("/test")
+def test():
+    return render_template('maps.html')
+
 
 
 @app.route("/saml/sso/<idp_name>", methods=['POST'])
