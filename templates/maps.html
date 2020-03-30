@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Geocoding Service</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #floating-panel {
+        position: absolute;
+        top: 10px;
+        left: 25%;
+        z-index: 5;
+        background-color: #fff;
+        padding: 5px;
+        border: 1px solid #999;
+        text-align: center;
+        font-family: 'Roboto','sans-serif';
+        line-height: 30px;
+        padding-left: 10px;
+      }
+    </style>
+  </head>
+  <body>
+
+
+    <div id="floating-panel">
+      <input id="address" type="textbox" value="3318 Piney Forest Dr., Houston, TX 77084">
+      <input id="submit" type="button" value="Geocode">
+    </div>
+
+
+    <div id="map"></div>
+
+
+
+
+    <script>
+
+
+      function initMap() {
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 12,
+          center: {lat: 42.3601, lng: -71.0589}
+        });
+        var geocoder = new google.maps.Geocoder();
+
+        addAddresses(geocoder, resultsMap = map)
+        default_address = {
+                            street:"Kenmore, Boston MA",
+                            request:"default_address request"
+                          }
+
+        document.getElementById('submit').addEventListener('click', function() {
+          geocodeAddress(geocoder, map, address = default_address);
+        });
+      }
+
+
+      function addAddresses(geocoder, resultsMap) {
+        var addresses = [{street:"23 Aldie St., Boston, MA 02134",
+                          request:"first address request"
+                         },
+                         {street:"1800 Commonwealth Ave., Boston, MA 02135",
+                          request:"second address request"
+                         },
+                        ]
+        addresses.forEach((v, i, a) => {
+          console.log(v);          
+          geocodeAddress(geocoder, resultsMap, address = v)
+        })
+
+        return addresses
+      }
+
+      function geocodeAddress(geocoder, resultsMap, address) {
+
+        // var address = document.getElementById('address').value;
+        var street = address.street;
+        geocoder.geocode({'address': street}, function(results, status) {
+          if (status === 'OK') {
+            resultsMap.setCenter(results[0].geometry.location);
+            resultsMap.setZoom(12);
+            
+
+
+            // Info window content
+            var contentString = address.request;
+
+
+
+
+            // Add info window
+            var infowindow = new google.maps.InfoWindow({
+              content: contentString,
+              maxWidth: 200
+            });
+
+
+            // Adding markers
+            var marker = new google.maps.Marker({
+              map: resultsMap,
+              position: results[0].geometry.location
+            });
+            marker.addListener('click', function() {
+              infowindow.open(map, marker);
+            });
+
+
+
+
+          } else {
+            alert('Geocode was not successful for the following reason: ' + status);
+          }
+        });
+      }
+
+
+
+
+
+
+    </script>
+
+
+
+
+
+
+
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDCom8FUe2CLz82IV4pGuObO5jEVd6YsYA&callback=initMap">
+    </script>
+  </body>
+</html>
