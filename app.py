@@ -59,7 +59,9 @@ metadata_url_for = {
     # WARNING WARNING WARNING
     }
 
+
 app = Flask(__name__)
+
 Bootstrap(app)
 app.secret_key = str(uuid.uuid4())  # Replace with your secret key
 login_manager = LoginManager()
@@ -155,9 +157,9 @@ def load_user(user_id):
 def main_page():
     return render_template('main_page.html', idp_dict=metadata_url_for)
 
-@app.route("/test")
-def test():
-    return render_template('maps.html')
+# @app.route("/test")
+# def test():
+#     return render_template('maps.html')
 
 
 

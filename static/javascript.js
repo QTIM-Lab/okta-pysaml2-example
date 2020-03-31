@@ -17,3 +17,30 @@ function initMap(callback=updateMap) {
     callback();
   }
 
+
+
+// when life is settled, load up the fun stuff
+document.addEventListener('DOMContentLoaded', function () {
+    console.log('AAAAAAAAAAAAAAAAAAAAAAAA')
+    sg1 = new Vue({
+        el: '#dtBasicExample',
+        // define data - initial display text
+        data: {
+        name: "Person",
+        email: "bbearce@gmail.com",
+        address: "02134",
+        post: "I need toilet paper",
+        requestType: "Shopping",
+        needHelp: true,
+        canHelp: false,
+        m1: "asdfasdf",
+        },
+    })
+
+    console.log(sg1)
+    console.log(sg1.$data)
+    console.log(sg1.$data.m1)
+    sg1.$data.m1 = "different"
+    console.log(sg1.$data.m1)
+})
+
