@@ -1,15 +1,27 @@
 
 # - Import Options- #
 
-# There is a better way but for now you need to run the first ([1]) line for running the server
-# and switch to the second ([2]) for running "recreate_db()" from app:
+# There is a better way but for now you need to:
+# 
+# [1] Run line with __main__ for running the server:
+from __main__ import db, UserMixin
+
+# Switch to:
+
+# [2] For running "recreate_db()" from app.py
+# from app import db, UserMixin
+
+### Note: ###
+# Example of running recreate_db() and using line [2] below:
+# $ . venv/bin/activate
+# $ python
 
 # >>> import app
 # >>> app.recreate_db(app)
 
 
-from __main__ import db, UserMixin # [1] For running the app
-# from app import db, UserMixin # [2] DB manipulation outside app
+
+
 
 
 
