@@ -23,6 +23,7 @@ from flask import (
     request,
     session,
     url_for,
+    jsonify,
 )
 from flask.ext.login import (
     LoginManager,
@@ -73,9 +74,30 @@ logging.basicConfig(level=logging.DEBUG)
 #   from your system's user store.
 user_store = {'bbearce@gmail.com': {}} # {'FirstName':'Benjamin','LastName':'Bearce'}}
 
-from models import db
-db.init_app(app)
+# from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or 'sqlite:///' + os.path.join(basedir, 'posts.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+from models import User, Post
 
+print(User.query.all())
+
+def recreate_db(app=app, User=User, Post=Post):
+    db = app.db
+    db.drop_all()
+    db.create_all()
+    user1 = User(id=1, name='Ben Bearce', email='bbearce@gmail.com', address='23 Aldie St. Allston, MA 02134', lat=0, lng=0)
+    user2 = User(id=2, name='Kyle Schluns', email='kschluns@gmail.com', address='The Viridian ,Boston, MA', lat=0, lng=0)
+    user3 = User(id=3, name='Miriam Blackwater', email='mblackwater@gmail.com', address='Boston, MA', lat=0, lng=0)
+
+    post1 = Post(userId=user1.id, request="Toilet paper is out in my area", requestType='inHouseHelp', canHelp=False, needHelp=True, status='un-resolved')
+    post2 = Post(userId=user1.id, request="Baby formula is out of stock here.", requestType='inHouseHelp', canHelp=False, needHelp=True, status='un-resolved')
+    post3 = Post(userId=user2.id, request="If anyone needs help shopping, let me know.", requestType='shopping', canHelp=True, needHelp=False, status='un-resolved')
+    post4 = Post(userId=user3.id, request="I have a care if anyone needs it", requestType='transportation', canHelp=True, needHelp=False, status='un-resolved')
+    db.session.add_all([user1,user2,user3,post1,post2,post3,post4])
+    db.session.commit()
 
 
 def saml_client_for(idp_name=None):
@@ -157,9 +179,15 @@ def load_user(user_id):
 def main_page():
     return render_template('main_page.html', idp_dict=metadata_url_for)
 
-# @app.route("/test")
-# def test():
-#     return render_template('maps.html')
+@app.route("/ping", methods=['GET'])
+def ping():
+    from models import User, Post
+    user = User.query.filter_by(name='Ben Bearce').first()
+    # post = Post.query.filter_by(userId=user.id).first()
+    posts = [post.serialize() for post in Post.query.all()]
+    print(user)
+    print(user.serialize())
+    return jsonify(response = 'pong!', user=user.serialize(), posts=posts)
 
 
 

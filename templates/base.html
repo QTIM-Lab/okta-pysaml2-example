@@ -36,8 +36,12 @@
 
 {% block scripts %}
 {{ super() }}
+    <!-- Custom js -->
     <script src="../static/javascript.js"></script>    
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDCom8FUe2CLz82IV4pGuObO5jEVd6YsYA&callback=initMap"></script>
-    <!-- development version, includes helpful console warnings -->
+    <!-- Google Maps -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBOpBMTlp7i5AvJYUbS9b7FYfnQCJi7k64&callback=initMap"></script>
+    <!-- Vuejs: development version, includes helpful console warnings -->
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <!-- AJAX Calls from below -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 {% endblock scripts%}
