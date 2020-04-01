@@ -1,10 +1,7 @@
-// Initialize and add the map
-function updateMap() { // callback function
-    $("#map").css('height', '400px')
+function initMap() {
     
-  }
-
-function initMap(callback=updateMap) {
+  setTimeout(() => {
+    console.log(document.getElementById('map'))
     // The location of Uluru
     var uluru = {lat: -25.344, lng: 131.036};
     // The map, centered at Uluru
@@ -13,9 +10,30 @@ function initMap(callback=updateMap) {
     
     // The marker, positioned at Uluru
     var marker = new google.maps.Marker({position: uluru, map: map});
+    $("#map").css('height', '400px')
 
-    callback();
-  }
+  }, 100)
+  
+}
+
+
+function i_run_fast() {
+  console.log('fast_response')
+}
+
+
+function i_take_time(callback) {
+  
+  setTimeout(() => {
+    console.log("slow_response")
+    callback()
+  }, 3000)
+}
+
+
+
+
+// initMap()
 
 
 // Enter Vuejs
@@ -100,7 +118,6 @@ const APP = new Vue({
           axios.get(path)
             .then((res) => {
               this.posts = res.data.posts;
-              console.log(this.posts)
               // this.updateMap();
               // this.updateMap(this.posts);
             })
