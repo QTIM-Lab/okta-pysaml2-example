@@ -22,71 +22,73 @@ function initMap(callback=updateMap) {
 // when page loads run all of this code
 document.addEventListener('DOMContentLoaded', () => {
 
-const app = new Vue({
+const APP = new Vue({
     el: '#app',
     // define data - initial display text
     data: {
-        results: 'test',
-        temp: {
-            name: "Person",
-            email: "bbearce@gmail.com",
-            address: "02134",
-            post: "I need toilet paper",
-            requestType: "Shopping",
-            needHelp: true,
-            canHelp: false,
-            m1: "asdfasdf", 
-        },
+      //delete start
+        // results: 'test',
+        // temp: {
+        //     name: "Person",
+        //     email: "bbearce@gmail.com",
+        //     address: "02134",
+        //     post: "I need toilet paper",
+        //     requestType: "Shopping",
+        //     needHelp: true,
+        //     canHelp: false,
+        //     m1: "asdfasdf", 
+        // },
+        //delete end
         iconMap: {
             transportation: 'transportation.png',
             inHouseHelp: 'inHouseHelp.png',
             shopping: 'shopping.png',
         },
-        lat: '',
-        lng: '',
-        google: '',
-        geocoder: '',
+        lat: 0,
+        lng: 0,
+        google: '',//delete?
+        geocoder: '',//delete?
         map: '',
-        requests: [],
-        addRequestForm: {
-        name: '',
-        email: '',
-        address: '',
-        request: '',
-        requestType: '',
-        needHelp: false,
-        canHelp: false,
+        posts: [],
+        addPostForm: {
+          name: '',
+          email: '',
+          address: '',
+          post: '',
+          requestType: '',
+          helpType: false,
         },
-        message: '',
-        showMessage: false,
-        editForm: {
-        id: '',
-        name: '',
-        email: '',
-        address: '',
-        request: '',
-        requestType: '',
-        needHelp: false,
-        canHelp: false,
+        message: false,
+        // showMessage: false,
+        editPostForm: {
+          id: '',
+          name: '',
+          email: '',
+          address: '',
+          post: '',
+          requestType: '',
+          helpType: false,
         },
 
     },
     
     mounted() {
         axios.get('http://localhost:5000/ping').then(response => {
-            console.log(response.data);
-            this.results = response.data;
+            // console.log(response.data);
+            // this.results = "this is from mounted()";
             })
     },
-
+    created() {
+      this.getRequests();
+    },
     methods: {
         ping() {
             const path = 'http://localhost:5000/ping';
             axios.get(path)
               .then((res) => {
-                this.requests = res.data.requests;
-                this.updateMap();
-                // this.updateMap(this.requests);
+                this.posts = res.data.posts;
+                // this.updateMap();
+                // this.updateMap(this.posts);
               })
               .catch((error) => {
                 // eslint-disable-next-line
@@ -94,12 +96,13 @@ const app = new Vue({
               });
         },
         getRequests() {
-          const path = 'http://172.21.14.152:5000/requests';
+          const path = 'http://localhost:5000/posts';
           axios.get(path)
             .then((res) => {
-              this.requests = res.data.requests;
-              this.updateMap();
-              // this.updateMap(this.requests);
+              this.posts = res.data.posts;
+              console.log(this.posts)
+              // this.updateMap();
+              // this.updateMap(this.posts);
             })
             .catch((error) => {
               // eslint-disable-next-line
@@ -107,12 +110,12 @@ const app = new Vue({
             });
         },
         addRequest(payload) { // actually posts data to db
-          const path = 'http://172.21.14.152:5000/requests';
+          const path = 'http://localhost:5000/posts';
           axios.post(path, payload)
-            .then(() => {
+            .then((res) => {
               this.getRequests();
-              this.message = 'Request added!';
-              this.showMessage = true;
+              // this.message = 'Request added!';
+              this.message = res.data.message
             })
             .catch((error) => {
               // eslint-disable-next-line
@@ -121,21 +124,19 @@ const app = new Vue({
             });
         },
         initForm() {
-          this.addRequestForm.name = '';
-          this.addRequestForm.email = '';
-          this.addRequestForm.address = '';
-          this.addRequestForm.request = '';
-          this.addRequestForm.requestType = '';
-          this.addRequestForm.needHelp = false;
-          this.addRequestForm.canHelp = false;
-          this.editForm.id = '';
-          this.editForm.name = '';
-          this.editForm.email = '';
-          this.editForm.address = '';
-          this.editForm.request = '';
-          this.editForm.requestType = '';
-          this.editForm.needHelp = false;
-          this.editForm.canHelp = false;
+          this.addPostForm.name = '';
+          this.addPostForm.email = '';
+          this.addPostForm.address = '';
+          this.addPostForm.request = '';
+          this.addPostForm.requestType = '';
+          this.addPostForm.helpType = false;
+          this.editPostForm.id = '';
+          this.editPostForm.name = '';
+          this.editPostForm.email = '';
+          this.editPostForm.address = '';
+          this.editPostForm.post = '';
+          this.editPostForm.requestType = '';
+          this.editPostForm.helpType = false;
         },
         geocodeAddress(request, fn) {
           // return { lat: 5, long: 5 };
@@ -168,7 +169,7 @@ const app = new Vue({
         },
         updateeMap() { // MISPELLED for a test
           this.removeAllMarkers();
-          this.requests.forEach((request) => {
+          this.posts.forEach((request) => {
             // this.geocodeAddress(request);
             // this.map.setCenter({ lat: 42.3601, lng: -71.0589 });
             // this.map.setZoom(12);
@@ -192,65 +193,99 @@ const app = new Vue({
         },
         onSubmit(evt) { // when you click submit of new request form
           evt.preventDefault();
-          this.$refs.addRequestModal.hide();
-          this.geocodeAddress(this.addRequestForm, (test) => {
-            const payload = {
-              name: this.addRequestForm.name,
-              email: this.addRequestForm.email,
-              address: this.addRequestForm.address,
-              lat: test.lat,
-              long: test.long,
-              request: this.addRequestForm.request,
-              requestType: this.addRequestForm.requestType,
-              needHelp: this.addRequestForm.needHelp,
-              canHelp: this.addRequestForm.canHelp,
-            };
-            this.addRequest(payload);
-            this.initForm();
-          });
+          $('#addPostModal').modal('toggle')
+          const payload = {
+            name: this.addPostForm.name,
+            email: this.addPostForm.email,
+            address: this.addPostForm.address,
+            lat: this.lat,
+            lng: this.lng,
+            post: this.addPostForm.post,
+            requestType: this.addPostForm.requestType,
+            helpType: this.addPostForm.helpType,
+          };
+          this.addRequest(payload);
+          this.initForm();
+          // this.geocodeAddress(this.addPostForm, (test) => {
+          //   const payload = {
+          //     name: this.addPostForm.name,
+          //     email: this.addPostForm.email,
+          //     address: this.addPostForm.address,
+          //     lat: test.lat,
+          //     long: test.long,
+          //     request: this.addPostForm.request,
+          //     requestType: this.addPostForm.requestType,
+          //     helpType: this.addPostForm.helpType,
+          //   };
+          //   this.addRequest(payload);
+          //   this.initForm();
+          // });
         },
         onReset(evt) {
           evt.preventDefault();
           this.$refs.addRequestModal.hide();
           this.initForm();
         },
-        editRequest(request) {
-          this.editForm = request;
+        editPost(post) {
+          this.editPostForm = {
+            id: post.id,
+            name: post.name,
+            email: post.email,
+            address: post.address,
+            post: post.post,
+            requestType: post.requestType,
+            helpType: post.helpType,
+          }
         },
         onSubmitUpdate(evt) {
           evt.preventDefault();
-          this.$refs.editRequestModal.hide();
-          this.geocodeAddress(this.editForm, (test) => {
-            const payload = {
-              name: this.editForm.name,
-              email: this.editForm.email,
-              address: this.editForm.address,
-              lat: test.lat,
-              long: test.long,
-              request: this.editForm.request,
-              requestType: this.editForm.requestType,
-              needHelp: this.editForm.needHelp,
-              canHelp: this.editForm.canHelp,
-            };
-            this.updateRequest(payload, this.editForm.id);
-          });
+          $('#editPostModal').modal('toggle')
+          const payload = {
+            name: this.editPostForm.name,
+            email: this.editPostForm.email,
+            address: this.editPostForm.address,
+            lat: this.lat,
+            lng: this.lng,
+            post: this.editPostForm.post,
+            requestType: this.editPostForm.requestType,
+            helpType: this.editPostForm.helpType,
+          };
+          console.log(payload)
+          console.log('this.editPostForm.id',this.editPostForm.id)
+          this.updateRequest(payload, this.editPostForm.id);          
+          this.initForm();
+          
+          
+          // this.geocodeAddress(this.editPostForm, (test) => {
+          //   const payload = {
+          //     name: this.editPostForm.name,
+          //     email: this.editPostForm.email,
+          //     address: this.editPostForm.address,
+          //     lat: test.lat,
+          //     lng: test.lng,
+          //     request: this.editPostForm.request,
+          //     requestType: this.editPostForm.requestType,
+          //     helpType: this.editPostForm.helpType,
+          //   };
+          //   this.updateRequest(payload, this.editPostForm.id);
+          // });
           // const payload = {
-          //   name: this.editForm.name,
-          //   email: this.editForm.email,
-          //   address: this.editForm.address,
-          //   request: this.editForm.request,
+          //   name: this.editPostForm.name,
+          //   email: this.editPostForm.email,
+          //   address: this.editPostForm.address,
+          //   request: this.editPostForm.request,
           //   needHelp,
           //   canHelp,
           // };
-          // this.updateRequest(payload, this.editForm.id);
+          // this.updateRequest(payload, this.editPostForm.id);
         },
         updateRequest(payload, requestID) {
-          const path = `http://172.21.14.152:5000/requests/${requestID}`;
+          const path = `http://localhost:5000/posts/${requestID}`;
           axios.put(path, payload)
             .then(() => {
               this.getRequests();
               this.message = 'Request updated!';
-              this.showMessage = true;
+              // this.showMessage = true;
             })
             .catch((error) => {
               // eslint-disable-next-line
@@ -260,16 +295,16 @@ const app = new Vue({
         },
         onResetUpdate(evt) {
           evt.preventDefault();
-          this.$refs.editRequestModal.hide();
+          this.$refs.editPostModal.hide();
           this.initForm();
           this.getRequests(); // why?
         },
         removeRequest(requestID) {
-          const path = `http://172.21.14.152:5000/requests/${requestID}`;
+          const path = `http://localhost:5000/posts/${requestID}`;
           axios.delete(path)
-            .then(() => {
+            .then((res) => {
               this.getRequests();
-              this.message = 'Request removed!';
+              this.message = res.data.message;
               this.showMessage = true;
             })
             .catch((error) => {

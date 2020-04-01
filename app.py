@@ -72,7 +72,7 @@ logging.basicConfig(level=logging.DEBUG)
 #   This is implemented as a dictionary for DEMONSTRATION PURPOSES ONLY.
 #   On a production system, this information must come
 #   from your system's user store.
-user_store = {'bbearce@gmail.com': {}} # {'FirstName':'Benjamin','LastName':'Bearce'}}
+
 
 # from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -81,8 +81,10 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or 'sqlit
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 from models import User, Post
+user_store = {'bbearce@gmail.com': {}} # {'FirstName':'Benjamin','LastName':'Bearce'}}
 
-print(User.query.all())
+
+# - Helper Functions - #
 
 def recreate_db(app=app, User=User, Post=Post):
     db = app.db
@@ -92,10 +94,10 @@ def recreate_db(app=app, User=User, Post=Post):
     user2 = User(id=2, name='Kyle Schluns', email='kschluns@gmail.com', address='The Viridian ,Boston, MA', lat=0, lng=0)
     user3 = User(id=3, name='Miriam Blackwater', email='mblackwater@gmail.com', address='Boston, MA', lat=0, lng=0)
 
-    post1 = Post(userId=user1.id, request="Toilet paper is out in my area", requestType='inHouseHelp', canHelp=False, needHelp=True, status='un-resolved')
-    post2 = Post(userId=user1.id, request="Baby formula is out of stock here.", requestType='inHouseHelp', canHelp=False, needHelp=True, status='un-resolved')
-    post3 = Post(userId=user2.id, request="If anyone needs help shopping, let me know.", requestType='shopping', canHelp=True, needHelp=False, status='un-resolved')
-    post4 = Post(userId=user3.id, request="I have a care if anyone needs it", requestType='transportation', canHelp=True, needHelp=False, status='un-resolved')
+    post1 = Post(userId=user1.id, post="Toilet paper is out in my area", requestType='inHouseHelp', helpType="needHelp", status='un-resolved')
+    post2 = Post(userId=user1.id, post="Baby formula is out of stock here.", requestType='inHouseHelp', helpType="needHelp", status='un-resolved')
+    post3 = Post(userId=user2.id, post="If anyone needs help shopping, let me know.", requestType='shopping', helpType="canHelp", status='un-resolved')
+    post4 = Post(userId=user3.id, post="I have a care if anyone needs it", requestType='transportation', helpType="canHelp", status='un-resolved')
     db.session.add_all([user1,user2,user3,post1,post2,post3,post4])
     db.session.commit()
 
@@ -155,7 +157,7 @@ def saml_client_for(idp_name=None):
     return saml_client
 
 
-class User(UserMixin):
+class User_SAML(UserMixin):
     def __init__(self, user_id):
         user = {}
         self.id = None
@@ -172,23 +174,14 @@ class User(UserMixin):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User(user_id)
+    return User_SAML(user_id)
 
+# - Views - #
+# SAML Code
 
 @app.route("/")
 def main_page():
     return render_template('main_page.html', idp_dict=metadata_url_for)
-
-@app.route("/ping", methods=['GET'])
-def ping():
-    from models import User, Post
-    user = User.query.filter_by(name='Ben Bearce').first()
-    # post = Post.query.filter_by(userId=user.id).first()
-    posts = [post.serialize() for post in Post.query.all()]
-    print(user)
-    print(user.serialize())
-    return jsonify(response = 'pong!', user=user.serialize(), posts=posts)
-
 
 
 @app.route("/saml/sso/<idp_name>", methods=['POST'])
@@ -203,9 +196,6 @@ def idp_initiated(idp_name):
     
     print("""
 
-
-
-
     user_store: {}
     idp_name: {}
     saml_client: {}
@@ -213,11 +203,6 @@ def idp_initiated(idp_name):
     authn_response.ava: {}
     username: {}
     user_info: {}
-
-
-
-
-
 
     """.format(user_store,idp_name,saml_client,authn_response, authn_response.ava,username,user_info))
 
@@ -231,7 +216,7 @@ def idp_initiated(idp_name):
             'first_name': authn_response.ava['FirstName'][0],
             'last_name': authn_response.ava['LastName'][0],
             }
-    user = User(username)
+    user = User_SAML(username)
     session['saml_attributes'] = authn_response.ava
     login_user(user)
     url = url_for('user')
@@ -283,6 +268,206 @@ def error_unauthorized(error):
 def logout():
     logout_user()
     return redirect(url_for("main_page"))
+
+
+# Map App
+
+# Helper functions
+# Helper for the update api
+def remove_request(post_id):
+    for request in db:
+        if request['id'] == post_id:
+            db.remove(Query().id == post_id)
+            return True
+    return False
+
+
+# Below is just practicing that we can retrieve data from the DB. Not a real route.
+@app.route("/ping", methods=['GET'])
+@login_required
+def ping():
+    from models import User, Post
+    user = User.query.filter_by(name='Ben Bearce').first()
+    # post = Post.query.filter_by(userId=user.id).first()
+    posts = [post.serialize() for post in Post.query.all()]
+    return jsonify(response = 'pong!', user=user.serialize(), posts=posts)
+
+
+@app.route('/posts', methods=['GET', 'POST'])
+def all_requests(app=app, User=User, Post=Post):
+    response_object = {'status': 'success'}
+    if request.method == 'POST':
+        post_data = request.get_json()
+        # Good print loop for seeing data you do\don't receive
+        # for i in post_data:
+        #     print(post_data.get(i))
+
+        # Check if user exists yet
+        if User.query.filter_by(email=post_data.get('email')).first() != None:
+            user = User.query.filter_by(email=post_data.get('email')).first()
+        else:
+            # If not then make a new user
+            new_user = User(
+                name=post_data.get('name'), 
+                email=post_data.get('email'), 
+                address=post_data.get('address'), 
+                lat=post_data.get('lat'), 
+                lng=post_data.get('lng')
+            )
+            db.session.add(new_user)
+            db.session.commit()
+            user = User.query.filter_by(email=post_data.get('email')).first()
+        
+        new_post = Post(
+            userId=user.id, 
+            post=post_data.get('post'), 
+            requestType=post_data.get('requestType'), 
+            helpType=post_data.get('helpType'), 
+            status=post_data.get('status')
+        )
+
+        db.session.add(new_post)
+        db.session.commit()
+
+        response_object['message'] = 'Response added for {}'.format(user.name)
+    else:
+        response_object['posts'] = [post.serialize() for post in Post.query.all()]
+    return jsonify(response_object)
+
+# Login
+@app.route('/login', methods=['POST'])
+def login():
+    if request.method == 'POST':
+        response_object = {'status': 'POST'}
+        post_data = request.get_json()
+        # Check if user exists in db
+        User = Query()
+        user = db.search(User.email == post_data.get('email'))
+        response_object = {'status': 'POST', 'isUsr':False}
+        print("""
+        email: {}
+        passwd: {}
+        """.format(post_data.get('email'), post_data.get('password')))
+        if len(user) != 0:
+            response_object['isUsr'] = True;
+
+    elif request.method == 'GET':
+        response_object = {'status': 'GET'}
+    else:
+        response_object = {'status': 'Something Else...'}
+
+    return jsonify(response_object)
+
+
+# Delete\Update api handler
+@app.route('/posts/<post_id>', methods=['PUT', 'DELETE'])
+def single_post(post_id):
+    response_object = {'status': 'success'}
+    if request.method == 'PUT':
+        put_data = request.get_json()
+        # remove_request(post_id)
+        print("id: {}".format(post_id))
+        print("name: {}".format(put_data.get('name')))
+        print("email: {}".format(put_data.get('email')))
+        print("address: {}".format(put_data.get('address')))
+        print("lat: {}".format(put_data.get('lat')))
+        print("long: {}".format(put_data.get('long')))
+        print("request: {}".format(put_data.get('post')))
+        print("requestType: {}".format(put_data.get('requestType')))
+        print("helpType: {}".format(put_data.get('helpType')))
+
+        post = Post.query.filter_by(id=post_id).first()
+        user = User.query.filter_by(id=post.userId).first()
+
+        post.post = put_data.get('post')
+        post.requestType = put_data.get('requestType')
+        post.helpType = put_data.get('helpType')
+        post.status = put_data.get('helpType')
+
+        db.session.add(post)
+        db.session.commit()
+
+        # db.insert({
+        #     'id': uuid.uuid4().hex,
+        #     'name': put_data.get('name'),
+        #     'email': put_data.get('email'),
+        #     'address': put_data.get('address'),
+        #     'lat': put_data.get('lat'),
+        #     'long': put_data.get('long'),
+        #     'request': put_data.get('request'),
+        #     'requestType': put_data.get('requestType'),
+        #     'needHelp': put_data.get('needHelp'),
+        #     'canHelp': put_data.get('canHelp')
+        # })
+        response_object['message'] = 'Response updated for {}'.format(user.name)
+    elif request.method == 'DELETE':
+        post = Post.query.filter_by(id=post_id).first()
+        user = User.query.filter_by(id=post.userId).first()
+        db.session.delete(post)
+        db.session.commit()
+        response_object['message'] = 'Response deleted for {}'.format(user.name)
+    else:
+        response_object['message'] = 'Request neither DELETE nor PUT...'
+    return jsonify(response_object)
+
+
+# Helper for clearing and reloading the db
+# def recreate_db():
+#     # Base
+#     import uuid
+
+#     # Flask
+#     from flask import Flask, jsonify, request
+#     from flask_cors import CORS
+
+#     # DB
+#     from tinydb import TinyDB, Query
+
+#     db = TinyDB('./database.json')
+#     db.purge()
+#     db.insert_multiple([
+#         {
+#             'id': uuid.uuid4().hex,
+#             'name': 'Jack Kerouac',
+#             'email': 'test@gmail.com',
+#             'address': 'Park Drive,Boston, MA',
+#             'lat': 42.341590,
+#             'long': -71.097740,
+#             'request': 'Lack of diapers in my area, can anyone help?',
+#             'requestType': 'shopping',
+#             'needHelp': False,
+#             'canHelp': False,
+#         },
+#         {
+#             'id': uuid.uuid4().hex,
+#             'name': 'J. K. Rowling',
+#             'email': 'test@gmail.com',
+#             'address': '23 Aldie St., Allston, MA 02134',
+#             'lat': 42.358960,
+#             'long': -71.135920,
+#             'request': 'Can someone watch my kid from 2-3pm tomorrow?',
+#             'requestType': 'inHouseHelp',
+#             'needHelp': False,
+#             'canHelp': False
+
+#         },
+#         {
+#             'id': uuid.uuid4().hex,
+#             'name': 'Ben B',
+#             'email': 'test@gmail.com',
+#             'address': '1000 Commonwealth Ave., Boston, MA 02135',
+#             'lat': 42.349420,
+#             'long': -71.132920,
+#             'request': 'I need a baby sitter this Friday (3/20/2020) from 1-2pm/ Is anyone available?',
+#             'requestType': 'inHouseHelp',
+#             'needHelp': False,
+#             'canHelp': False
+#         }
+#     ])
+
+
+
+
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))

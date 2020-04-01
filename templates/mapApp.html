@@ -12,7 +12,10 @@
 
     <div class=row>
 
-        <button type="button" class="btn btn-success dropdown-item" data-toggle="modal" data-target="#addRequestModal">Post a New Request</button> {% raw %} {{ results }} {% endraw %}
+        <button type="button" class="btn btn-success dropdown-item" data-toggle="modal" data-target="#addPostModal">Post a New Request</button>
+        <div v-if="message" class="alert alert-success" role="alert">
+            {% raw %} {{ message }} {% endraw %}
+        </div>
         <table id="table" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
             <thead>
             <tr>
@@ -21,25 +24,35 @@
                 <th class="th-sm">Address</th>
                 <th class="th-sm">Post</th>
                 <th class="th-sm">Request Type</th>
-                <th class="th-sm">Need Help</th>
-                <th class="th-sm">Can Help</th>
+                <th class="th-sm">Help Type</th>
                 <th class="th-sm">Edit Post</th>
             </tr>
             </thead>
             <tbody>
 
-            <tr>
-                <td>{% raw %} {{ temp['name'] }} {% endraw %}</td>
-                <td>{% raw %} {{ temp['email'] }} {% endraw %}</td>
-                <td>{% raw %} {{ temp['address'] }} {% endraw %}</td>
-                <td>{% raw %} {{ temp['post'] }} {% endraw %}</td>
-                <td>{% raw %} {{ temp['requestType'] }} {% endraw %}</td>
-                <td>{% raw %} {{ temp['needHelp'] ? 'Yes' : 'No' }} {% endraw %}</td>
-                <td>{% raw %} {{ temp['canHelp'] ? 'Yes' : 'No' }} {% endraw %}</td>
+            <tr v-for="(post, index) in posts" :key="index">
+                <td>{% raw %} {{ post['name'] }} {% endraw %}</td>
+                <td>{% raw %} {{ post['email'] }} {% endraw %}</td>
+                <td>{% raw %} {{ post['address'] }} {% endraw %}</td>
+                <td>{% raw %} {{ post['post'] }} {% endraw %}</td>
+                <td>{% raw %} {{ post['requestType'] }} {% endraw %}</td>
+                <td>{% raw %} {{ post['helpType'] }} {% endraw %}</td>
                 <td>
                     <div class="btn-group btn-group-sm" role="group" aria-label="...">
-                        <button type="button" class="btn btn-primary dropdown-item" data-toggle="modal" data-target="#updateModal">Update</button>
-                        <button type="button" class="btn btn-danger dropdown-item" data-toggle="modal" data-target="#deleteModal">Delete</button>
+                        <button type="button" 
+                                class="btn btn-primary dropdown-item" 
+                                data-toggle="modal" 
+                                data-target="#editPostModal"
+                                @click="editPost(post)">
+                                Update
+                        </button>
+                        <button type="button" 
+                                class="btn btn-danger dropdown-item" 
+                                data-toggle="modal" 
+                                data-target="#deleteModal"
+                                @click="onDeleteRequest(post)">
+                                Delete
+                        </button>
                     </div>
 
                 </td>
@@ -52,8 +65,7 @@
                 <th class="th-sm">Address</th>
                 <th class="th-sm">Post</th>
                 <th class="th-sm">Request Type</th>
-                <th class="th-sm">Need Help</th>
-                <th class="th-sm">Can Help</th>
+                <th class="th-sm">Help Type</th>
                 <th class="th-sm">Edit Post</th>
             </tr>
             </tfoot>
@@ -62,11 +74,11 @@
 
 
         <!-- Add Request Modal -->
-        <div class="modal fade" id="addRequestModal" tabindex="-1" role="dialog" aria-labelledby="addRequestModalLabel" aria-hidden="true">
+        <div class="modal fade" id="addPostModal" tabindex="-1" role="dialog" aria-labelledby="addPostModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="addRequestModalLabel">New Post</h5>
+                        <h5 class="modal-title" id="addPostModalLabel">New Post</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -74,32 +86,36 @@
                     <div class="modal-body">
                     
                         
-                        <form>
+                        <form @submit="onSubmit">
                             <div class="form-group">
-                                <label for="addRequestName">Name</label>
-                                <input type="text" class="form-control" id="addRequestPassword1" placeholder="Name">
+                                <label for="addPostName">Name</label>
+                                <input v-model="addPostForm.name" type="text" class="form-control" id="addPostName" placeholder="Name">
                             </div>
                             <div class="form-group">
-                            <label for="addRequestEmail1">Email address</label>
-                            <input type="email" class="form-control" id="addRequestEmail1" aria-describedby="emailHelp" placeholder="Enter email">
+                            <label for="addPostEmail1">Email address</label>
+                            <input v-model="addPostForm.email" type="email" class="form-control" id="addPostEmail1" aria-describedby="emailHelp" placeholder="Enter email">
                             <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
                             </div>
                             <div class="form-group">
-                            <label for="addRequestAddress">Zip Code</label>
-                            <input type="test" class="form-control" id="addRequestAddress" placeholder="address">
+                            <label for="addPostAddress">Zip Code</label>
+                            <input v-model="addPostForm.address" type="address" class="form-control" id="addPostAddress" placeholder="address">
                             </div>
+                            <div class="form-group">
+                                <label for="addPostRequest">Request</label>
+                                <input v-model="addPostForm.post" type="text" class="form-control" id="addPostRequest" placeholder="Request">
+                                </div>
                             
                             <div class="form-group">
                                 <label for="">What kind of post is this?</label>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="addRequestPostType" id="addRequestNeedHelp" value="option1" checked>
-                                    <label class="form-check-label" for="addRequestRadios1">
-                                    addRequesting Assistance
+                                    <input v-model="addPostForm.helpType" class="form-check-input" type="radio" name="addPostPostType" id="addPostNeedHelp" value='needHelp' checked>
+                                    <label class="form-check-label" for="addPostNeedHelp">
+                                    Requesting Assistance
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="addRequestPostType" id="addRequestCanHelp" value="option2">
-                                    <label class="form-check-label" for="addRequestRadios2">
+                                    <input v-model="addPostForm.helpType" class="form-check-input" type="radio" name="addPostPostType" id="addPostCanHelp" value='canHelp'>
+                                    <label class="form-check-label" for="addPostCanHelp">
                                     Can Give Assistance
                                     </label>
                                 </div>
@@ -108,41 +124,41 @@
                             <div class="form-group">
                                 <label for="">What service do you need?</label>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="addRequestService" id="addRequestTransportation" value="option1" checked>
-                                    <label class="form-check-label" for="addRequest">
+                                    <input v-model="addPostForm.requestType" class="form-check-input" type="radio" name="addPostService" id="addPostTransportation" value="transportation" checked>
+                                    <label class="form-check-label" for="addPostTransportation">
                                     Transportation
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="addRequestService" id="addRequestShopping" value="option2">
-                                    <label class="form-check-label" for="addRequest">
+                                    <input v-model="addPostForm.requestType" class="form-check-input" type="radio" name="addPostService" id="addPostShopping" value="shopping">
+                                    <label class="form-check-label" for="addPostShopping">
                                     Shopping
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="addRequestService" id="addRequestInHouseHelp" value="option3">
-                                    <label class="form-check-label" for="addRequest">
+                                    <input v-model="addPostForm.requestType" class="form-check-input" type="radio" name="addPostService" id="addPostInHouseHelp" value="inHouseHelp">
+                                    <label class="form-check-label" for="addPostInHouseHelp">
                                     In House Help
                                     </label>
                                 </div>
                             </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
                         </form>
                     </div>
                     <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Submit</button>
                     </div>
                 </div>
             </div>
         </div>
 
 
-        <!-- Add Request Modal -->
-        <div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
+        <!-- Update Modal -->
+        <div class="modal fade" id="editPostModal" tabindex="-1" role="dialog" aria-labelledby="editPostModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="updateModalLabel">Update Post</h5>
+                        <h5 class="modal-title" id="editPostModalLabel">Update Post</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -150,32 +166,36 @@
                     <div class="modal-body">
                     
                         
-                        <form>
+                        <form @submit="onSubmitUpdate">
                             <div class="form-group">
-                                <label for="updateName">Name</label>
-                                <input type="text" class="form-control" id="updatePassword1" placeholder="Name">
+                                <label for="editPostName">Name</label>
+                                <input v-model="editPostForm.name" type="text" class="form-control" id="editPostName" placeholder="Name">
                             </div>
                             <div class="form-group">
-                            <label for="updateEmail1">Email address</label>
-                            <input type="email" class="form-control" id="updateEmail1" aria-describedby="emailHelp" placeholder="Enter email">
+                            <label for="editPostEmail1">Email address</label>
+                            <input v-model="editPostForm.email" type="email" class="form-control" id="editPostEmail1" aria-describedby="emailHelp" placeholder="Enter email">
                             <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
                             </div>
                             <div class="form-group">
-                            <label for="updateAddress">Zip Code</label>
-                            <input type="test" class="form-control" id="updateAddress" placeholder="address">
+                            <label for="editPostAddress">Zip Code</label>
+                            <input v-model="editPostForm.address" type="address" class="form-control" id="editPostAddress" placeholder="address">
                             </div>
+                            <div class="form-group">
+                                <label for="editPostPost">Post</label>
+                                <input v-model="editPostForm.post" type="text" class="form-control" id="editPostPost" placeholder="Post">
+                                </div>
                             
                             <div class="form-group">
                                 <label for="">What kind of post is this?</label>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="updatePostType" id="updateNeedHelp" value="option1" checked>
-                                    <label class="form-check-label" for="updateRadios1">
-                                    updateing Assistance
+                                    <input v-model="editPostForm.helpType" class="form-check-input" type="radio" name="editPostPostType" id="editPostNeedHelp" value='needHelp' checked>
+                                    <label class="form-check-label" for="editPostNeedHelp">
+                                    Requesting Assistance
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="updatePostType" id="updateCanHelp" value="option2">
-                                    <label class="form-check-label" for="updateRadios2">
+                                    <input v-model="editPostForm.helpType" class="form-check-input" type="radio" name="editPostPostType" id="editPostCanHelp" value='canHelp'>
+                                    <label class="form-check-label" for="editPostCanHelp">
                                     Can Give Assistance
                                     </label>
                                 </div>
@@ -184,52 +204,31 @@
                             <div class="form-group">
                                 <label for="">What service do you need?</label>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="updateService" id="updateTransportation" value="option1" checked>
-                                    <label class="form-check-label" for="update">
+                                    <input v-model="editPostForm.requestType" class="form-check-input" type="radio" name="editPostService" id="editPostTransportation" value="transportation" checked>
+                                    <label class="form-check-label" for="editPostTransportation">
                                     Transportation
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="updateService" id="updateShopping" value="option2">
-                                    <label class="form-check-label" for="update">
+                                    <input v-model="editPostForm.requestType" class="form-check-input" type="radio" name="editPostService" id="editPostShopping" value="shopping">
+                                    <label class="form-check-label" for="editPostShopping">
                                     Shopping
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="updateService" id="updateInHouseHelp" value="option3">
-                                    <label class="form-check-label" for="update">
+                                    <input v-model="editPostForm.requestType" class="form-check-input" type="radio" name="editPostService" id="editPostInHouseHelp" value="inHouseHelp">
+                                    <label class="form-check-label" for="editPostInHouseHelp">
                                     In House Help
                                     </label>
                                 </div>
                             </div>
+                            <button type="submit" class="btn btn-primary">Update</button>
                         </form>
                     </div>
                     <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Update</button>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Delete Modal -->
-        <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Delete Post</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-                </div>
-                <div class="modal-body">
-                ...
-                </div>
-                <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Save changes</button>
-                </div>
-            </div>
             </div>
         </div>
 

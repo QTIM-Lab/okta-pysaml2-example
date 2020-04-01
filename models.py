@@ -27,10 +27,10 @@ from __main__ import db, UserMixin
 
 class User(db.Model, UserMixin): #UserMixin, when ready
     __tablename__ = 'users'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), unique=True, index=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(64), index=True)
     email = db.Column(db.String(64), unique=True, index=True)
-    address = db.Column(db.String(64), unique=True, index=True)
+    address = db.Column(db.String(64), index=True)
     lat = db.Column(db.Float)
     lng = db.Column(db.Float)
     
@@ -43,8 +43,9 @@ class User(db.Model, UserMixin): #UserMixin, when ready
     def serialize(self):
        """Return object data in easily serializable format"""
        return {
-           'id'         : self.id,
+           'id' : self.id,
            'name': self.name,
+           'email': self.email,
            'address': self.address,
            'lat': self.lat,
            'lng': self.lng,
@@ -56,23 +57,26 @@ class Post(db.Model):
     # Columns
     id = db.Column(db.Integer, primary_key=True)
     userId = db.Column(db.Integer, db.ForeignKey('users.id'))
-    request = db.Column(db.Text())
+    post = db.Column(db.Text())
     requestType = db.Column(db.String(64))
-    canHelp = db.Column(db.Boolean())
-    needHelp = db.Column(db.Boolean())
+    helpType = db.Column(db.String(64))
     status = db.Column(db.String(64))
 
     def __repr__(self):
-        return '<Post: %r>' % self.request[0:20]
+        return '<Post: %r>' % self.userId
 
     def serialize(self):
        """Return object data in easily serializable format"""
        return {
-           'id'         : self.id,
-           'userId': self.userId,
-           'request': self.request,
-           'requestType': self.requestType,
-           'canHelp': self.canHelp,
-           'needHelp': self.needHelp,
-           'status': self.status,
+           'id' : self.id, # native property
+           'userId': self.userId, # native property
+           'name': User.query.filter_by(id=self.userId).first().name,
+           'email': User.query.filter_by(id=self.userId).first().email,
+           'address': User.query.filter_by(id=self.userId).first().address,
+           'lat': User.query.filter_by(id=self.userId).first().lat,
+           'lng': User.query.filter_by(id=self.userId).first().lng,
+           'post': self.post, # native property
+           'requestType': self.requestType, # native property
+           'helpType': self.helpType, # native property
+           'status': self.status, # native property
        }
