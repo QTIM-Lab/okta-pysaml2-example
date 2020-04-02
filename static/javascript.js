@@ -38,6 +38,7 @@ const APP = new Vue({
         mgh_map: null,
         posts: [],
         markers: [],
+        icons: [],
         addPostForm: {
           name: '',
           email: '',
@@ -213,11 +214,12 @@ const APP = new Vue({
           this.mgh_map = mgh_map //store map
 
           this.posts.forEach((post,i,array) => {
+            this.icons.push('../static/' + this.iconMap[post.requestType])
             marker = new window.google.maps.Marker({
               // position: { lat: 42.3601, lng: -71.0589 },
               position: { lat: post.lat, lng: post.lng },
               map: this.mgh_map,
-              // icon: '/' + this.iconMap[post.requestType],
+              icon: this.icons[i],
             });
             this.markers.push(marker)
             const contentString = `<h3>${post.name}</h3><hr><br><p>${post.post}</p>`;
@@ -281,7 +283,7 @@ const APP = new Vue({
             this.initForm();
           });
         },
-        onReset(evt) {
+        onReset(evt) { // I don't think it's being used right now
           evt.preventDefault();
           this.$refs.addRequestModal.hide();
           this.initForm();
