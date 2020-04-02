@@ -10,7 +10,7 @@ from __main__ import db, UserMixin
 
 # [2] For running "recreate_db()" from app.py
 # from app import db, UserMixin
-
+# 
 ### Note: ###
 # Example of running recreate_db() and using line [2] below:
 # $ . venv/bin/activate

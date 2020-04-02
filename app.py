@@ -90,9 +90,9 @@ def recreate_db(app=app, User=User, Post=Post):
     db = app.db
     db.drop_all()
     db.create_all()
-    user1 = User(id=1, name='Ben Bearce', email='bbearce@gmail.com', address='23 Aldie St. Allston, MA 02134', lat=0, lng=0)
-    user2 = User(id=2, name='Kyle Schluns', email='kschluns@gmail.com', address='The Viridian ,Boston, MA', lat=0, lng=0)
-    user3 = User(id=3, name='Miriam Blackwater', email='mblackwater@gmail.com', address='Boston, MA', lat=0, lng=0)
+    user1 = User(id=1, name='Ben Bearce', email='bbearce@gmail.com', address='23 Aldie St. Allston, MA 02134', lat=42.3601, lng=-71.0589)
+    user2 = User(id=2, name='Kyle Schluns', email='kschluns@gmail.com', address='The Viridian ,Boston, MA', lat=42.3601, lng=-71.1589)
+    user3 = User(id=3, name='Miriam Blackwater', email='mblackwater@gmail.com', address='Boston, MA', lat=42.3601, lng=-71.2589)
 
     post1 = Post(userId=user1.id, post="Toilet paper is out in my area", requestType='inHouseHelp', helpType="needHelp", status='un-resolved')
     post2 = Post(userId=user1.id, post="Baby formula is out of stock here.", requestType='inHouseHelp', helpType="needHelp", status='un-resolved')
@@ -305,6 +305,12 @@ def all_requests(app=app, User=User, Post=Post):
         # Check if user exists yet
         if User.query.filter_by(email=post_data.get('email')).first() != None:
             user = User.query.filter_by(email=post_data.get('email')).first()
+            user.name = post_data.get('name')
+            user.address = post_data.get('address')
+            user.lat = post_data.get('lat')
+            user.lng = post_data.get('lng')
+            print(type(user.lat), type(user.lng))
+            db.session.add(user)
         else:
             # If not then make a new user
             new_user = User(
@@ -325,7 +331,6 @@ def all_requests(app=app, User=User, Post=Post):
             helpType=post_data.get('helpType'), 
             status=post_data.get('status')
         )
-
         db.session.add(new_post)
         db.session.commit()
 
@@ -375,6 +380,7 @@ def single_post(post_id):
         print("request: {}".format(put_data.get('post')))
         print("requestType: {}".format(put_data.get('requestType')))
         print("helpType: {}".format(put_data.get('helpType')))
+        print("status: {}".format(put_data.get('status')))
 
         post = Post.query.filter_by(id=post_id).first()
         user = User.query.filter_by(id=post.userId).first()
@@ -382,7 +388,13 @@ def single_post(post_id):
         post.post = put_data.get('post')
         post.requestType = put_data.get('requestType')
         post.helpType = put_data.get('helpType')
-        post.status = put_data.get('helpType')
+        post.status = put_data.get('status')
+
+        user.name = put_data.get('name')
+        user.address = put_data.get('address')
+        user.lat = put_data.get('lat')
+        user.lng = put_data.get('lng')
+        db.session.add(user)
 
         db.session.add(post)
         db.session.commit()

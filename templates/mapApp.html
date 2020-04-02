@@ -4,7 +4,7 @@
     <div class=row>
       <div class="col-md-2"></div>
       <div class="col-md-8">
-        <div id="map"></div>
+        <div id="map" ref="mgh_map"></div>
       </div>
       <div class="col-md-2"></div>
     </div>
@@ -25,7 +25,9 @@
                 <th class="th-sm">Post</th>
                 <th class="th-sm">Request Type</th>
                 <th class="th-sm">Help Type</th>
+                <th class="th-sm">Status</th>
                 <th class="th-sm">Edit Post</th>
+                <th class="th-sm">Delete Post</th>
             </tr>
             </thead>
             <tbody>
@@ -37,23 +39,25 @@
                 <td>{% raw %} {{ post['post'] }} {% endraw %}</td>
                 <td>{% raw %} {{ post['requestType'] }} {% endraw %}</td>
                 <td>{% raw %} {{ post['helpType'] }} {% endraw %}</td>
+                <td>{% raw %} {{ post['status'] }} {% endraw %}</td>
                 <td>
-                    <div class="btn-group btn-group-sm" role="group" aria-label="...">
-                        <button type="button" 
-                                class="btn btn-primary dropdown-item" 
-                                data-toggle="modal" 
-                                data-target="#editPostModal"
-                                @click="editPost(post)">
-                                Update
-                        </button>
-                        <button type="button" 
-                                class="btn btn-danger dropdown-item" 
-                                data-toggle="modal" 
-                                data-target="#deleteModal"
-                                @click="onDeleteRequest(post)">
-                                Delete
-                        </button>
-                    </div>
+                    <button type="button" 
+                            class="btn btn-primary dropdown-item" 
+                            data-toggle="modal" 
+                            data-target="#editPostModal"
+                            @click="editPost(post)">
+                            Update
+                    </button>
+                </td>
+                <td>
+                    <button type="button" 
+                            class="btn btn-danger dropdown-item" 
+                            data-toggle="modal" 
+                            data-target="#deleteModal"
+                            @click="onDeleteRequest(post)">
+                            Delete
+                    </button>
+                </td>
 
                 </td>
             </tr>
@@ -66,6 +70,8 @@
                 <th class="th-sm">Post</th>
                 <th class="th-sm">Request Type</th>
                 <th class="th-sm">Help Type</th>
+                <th class="th-sm">Status</th>
+                <th class="th-sm">Edit Post</th>
                 <th class="th-sm">Edit Post</th>
             </tr>
             </tfoot>
@@ -101,8 +107,8 @@
                             <input v-model="addPostForm.address" type="address" class="form-control" id="addPostAddress" placeholder="address">
                             </div>
                             <div class="form-group">
-                                <label for="addPostRequest">Request</label>
-                                <input v-model="addPostForm.post" type="text" class="form-control" id="addPostRequest" placeholder="Request">
+                                <label for="addPostPost">Post</label>
+                                <input v-model="addPostForm.post" type="text" class="form-control" id="addPostPost" placeholder="Out of supplies in my area">
                                 </div>
                             
                             <div class="form-group">
@@ -142,6 +148,23 @@
                                     </label>
                                 </div>
                             </div>
+
+                            <div class="form-group">
+                                <label for="">Post Status?</label>
+                                <div class="form-check">
+                                    <input v-model="addPostForm.status" class="form-check-input" type="radio" name="addPostResolved" id="addPostResolved" value='resolved' checked>
+                                    <label class="form-check-label" for="addPostResolved">
+                                    Resolved
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input v-model="addPostForm.status" class="form-check-input" type="radio" name="addPostUnresolved" id="addPostUnresolved" value='un-resolved'>
+                                    <label class="form-check-label" for="addPostUnresolved">
+                                    Unresolved
+                                    </label>
+                                </div>
+                            </div>
+
                             <button type="submit" class="btn btn-primary">Submit</button>
                         </form>
                     </div>
@@ -222,6 +245,23 @@
                                     </label>
                                 </div>
                             </div>
+
+                            <div class="form-group">
+                                <label for="">Post Status?</label>
+                                <div class="form-check">
+                                    <input v-model="editPostForm.status" class="form-check-input" type="radio" name="editPostResolved" id="editPostResolved" value='resolved' checked>
+                                    <label class="form-check-label" for="editPostResolved">
+                                    Resolved
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input v-model="editPostForm.status" class="form-check-input" type="radio" name="editPostUnresolved" id="editPostUnresolved" value='un-resolved'>
+                                    <label class="form-check-label" for="editPostUnresolved">
+                                    Unresolved
+                                    </label>
+                                </div>
+                            </div>
+
                             <button type="submit" class="btn btn-primary">Update</button>
                         </form>
                     </div>

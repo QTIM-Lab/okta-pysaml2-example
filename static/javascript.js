@@ -1,39 +1,21 @@
-function initMap() {
-    
-  setTimeout(() => {
-    console.log(document.getElementById('map'))
-    // The location of Uluru
-    var uluru = {lat: -25.344, lng: 131.036};
-    // The map, centered at Uluru
-    var map = new google.maps.Map(
-        document.getElementById('map'), {zoom: 4, center: uluru});
-    
-    // The marker, positioned at Uluru
-    var marker = new google.maps.Marker({position: uluru, map: map});
-    $("#map").css('height', '400px')
-
-  }, 100)
-  
-}
-
-
-function i_run_fast() {
-  console.log('fast_response')
-}
-
-
-function i_take_time(callback) {
-  
-  setTimeout(() => {
-    console.log("slow_response")
-    callback()
-  }, 3000)
-}
-
-
-
-
 // initMap()
+// function initMap() {
+    
+//   setTimeout(() => {
+//     console.log(document.getElementById('map'))
+//     // The location of boston
+//     var boston = {lat: 42.3601, lng: -71.0589};
+//     // The map, centered at boston
+//     var map = new google.maps.Map(
+//         document.getElementById('map'), {zoom: 11, center: boston});
+    
+//     // The marker, positioned at boston
+//     // var marker = new google.maps.Marker({position: boston, map: map});
+//     $("#map").css('height', '400px')
+
+//   }, 100)
+  
+// }
 
 
 // Enter Vuejs
@@ -44,19 +26,6 @@ const APP = new Vue({
     el: '#app',
     // define data - initial display text
     data: {
-      //delete start
-        // results: 'test',
-        // temp: {
-        //     name: "Person",
-        //     email: "bbearce@gmail.com",
-        //     address: "02134",
-        //     post: "I need toilet paper",
-        //     requestType: "Shopping",
-        //     needHelp: true,
-        //     canHelp: false,
-        //     m1: "asdfasdf", 
-        // },
-        //delete end
         iconMap: {
             transportation: 'transportation.png',
             inHouseHelp: 'inHouseHelp.png',
@@ -66,8 +35,9 @@ const APP = new Vue({
         lng: 0,
         google: '',//delete?
         geocoder: '',//delete?
-        map: '',
+        mgh_map: null,
         posts: [],
+        markers: [],
         addPostForm: {
           name: '',
           email: '',
@@ -75,6 +45,7 @@ const APP = new Vue({
           post: '',
           requestType: '',
           helpType: false,
+          status: '',
         },
         message: false,
         // showMessage: false,
@@ -86,20 +57,59 @@ const APP = new Vue({
           post: '',
           requestType: '',
           helpType: false,
+          status: '',
         },
 
     },
-    
-    mounted() {
-        axios.get('http://localhost:5000/ping').then(response => {
-            // console.log(response.data);
-            // this.results = "this is from mounted()";
-            })
-    },
     created() {
-      this.getRequests();
+      this.getRequests()
+    },
+    mounted() {
+        // axios.get('http://localhost:5000/ping').then(response => {
+        //     // console.log(response.data);
+        //     // this.results = "this is from mounted()";
+        //     })
+        
+        function initMap(callback) {
+          // data() not accessible here
+          setTimeout(() => {
+            // The location of boston
+            var boston = {lat: 42.3601, lng: -71.0589};
+            // The map, centered at boston
+            mgh_map = new google.maps.Map(document.getElementById('map'), {zoom: 11, center: boston});
+
+            $("#map").css('height', '400px')
+            callback(mgh_map);
+          }, 1000)
+        }
+  
+        initMap(this.updateMap)
+        
     },
     methods: {
+        // initMap() {
+        //   setTimeout(() => {
+        //     // The location of boston
+        //     var boston = {lat: 42.3601, lng: -71.0589};
+        //     // The map, centered at boston
+        //     this.mgh_map = new google.maps.Map(
+        //         document.getElementById('map'), {zoom: 11, center: boston});
+            
+        //     // The marker, positioned at boston
+        //     // var marker = new google.maps.Marker({position: boston, map: map});
+        //     $("#map").css('height', '400px')
+        
+        //   }, 100)
+        // },
+        getMap(callback) {
+          let vm = this // vm must mean Vue Model...used to model vue instances.
+          function checkForMap() {
+            console.log('checkForMap...')
+            if (vm.mgh_map) callback(vm.map_mgh)
+            else setTimeout(checkForMap, 200)
+          }
+          checkForMap()
+        },
         ping() {
             const path = 'http://localhost:5000/ping';
             axios.get(path)
@@ -118,7 +128,6 @@ const APP = new Vue({
           axios.get(path)
             .then((res) => {
               this.posts = res.data.posts;
-              // this.updateMap();
               // this.updateMap(this.posts);
             })
             .catch((error) => {
@@ -140,13 +149,28 @@ const APP = new Vue({
               this.getRequests();
             });
         },
+        updateRequest(payload, requestID) {
+          const path = `http://localhost:5000/posts/${requestID}`;
+          axios.put(path, payload)
+            .then(() => {
+              this.getRequests();
+              this.message = 'Request updated!';
+              // this.showMessage = true;
+            })
+            .catch((error) => {
+              // eslint-disable-next-line
+              console.error(error);
+              this.getRequests();
+            });
+        },
         initForm() {
           this.addPostForm.name = '';
           this.addPostForm.email = '';
           this.addPostForm.address = '';
-          this.addPostForm.request = '';
+          this.addPostForm.post = '';
           this.addPostForm.requestType = '';
           this.addPostForm.helpType = false;
+          this.addPostForm.status = '';
           this.editPostForm.id = '';
           this.editPostForm.name = '';
           this.editPostForm.email = '';
@@ -154,8 +178,9 @@ const APP = new Vue({
           this.editPostForm.post = '';
           this.editPostForm.requestType = '';
           this.editPostForm.helpType = false;
+          this.editPostForm.status = '';
         },
-        geocodeAddress(request, fn) {
+        geocodeAddress(request, callback) {
           // return { lat: 5, long: 5 };
           // const street = document.getElementById('address').value;
           const street = request.address;
@@ -163,9 +188,9 @@ const APP = new Vue({
             // console.log(typeof(this));
             // console.log(results[0].geometry.location.lat());
             // console.log(results[0].geometry.location.lng());
-            const test = {
+            const lat_lngs = {
               lat: results[0].geometry.location.lat(),
-              long: results[0].geometry.location.lng(),
+              lng: results[0].geometry.location.lng(),
             };
             // if (status === 'OK') {
             //   const [result] = results;
@@ -174,69 +199,87 @@ const APP = new Vue({
             // }
             // return { lat: -1, lng: -1 };
             // alert(`Geocode was not successful for the following reason: ${status}`);
-            fn(test);
+            callback(lat_lngs);
           });
         },
         removeAllMarkers() {
-          this.map.data.forEach((feature) => {
+          this.mgh_map.data.forEach((feature) => {
             if (feature.getGeometry().getType() === 'Point') {
-              this.map.data.remove(feature);
+              this.mgh_map.data.remove(feature);
             }
           });
         },
-        updateeMap() { // MISPELLED for a test
-          this.removeAllMarkers();
-          this.posts.forEach((request) => {
-            // this.geocodeAddress(request);
-            // this.map.setCenter({ lat: 42.3601, lng: -71.0589 });
-            // this.map.setZoom(12);
-            // Info window content
-            const contentString = `<h3>${request.name}</h3><hr><br><p>${request.request}</p>`;
-            // Add info window
-            const infowindow = new this.google.maps.InfoWindow({
+        updateMap(mgh_map) {
+          this.mgh_map = mgh_map //store map
+
+          this.posts.forEach((post,i,array) => {
+            marker = new window.google.maps.Marker({
+              // position: { lat: 42.3601, lng: -71.0589 },
+              position: { lat: post.lat, lng: post.lng },
+              map: this.mgh_map,
+              // icon: '/' + this.iconMap[post.requestType],
+            });
+            this.markers.push(marker)
+            const contentString = `<h3>${post.name}</h3><hr><br><p>${post.post}</p>`;
+            const infowindow = new window.google.maps.InfoWindow({
               content: contentString,
               maxWidth: 200,
             });
-            // Adding markers
-            const marker = new this.google.maps.Marker({
-              map: this.map,
-              position: { lat: request.lat, lng: request.long },
-              icon: '/' + this.iconMap[request.requestType],
-            });
+            console.log(i)
+            console.log(this.markers[i])
             marker.addListener('click', () => {
-              infowindow.open(this.map, marker);
+              infowindow.open(this.mgh_map, this.markers[i]);
             });
-          });
+          })
+
+          // this.removeAllMarkers();
+          // this.posts.forEach((post) => {
+          //   // Info window content
+          //   const contentString = `<h3>${post.name}</h3><hr><br><p>${post.post}</p>`;
+          //   // Add info window
+            // const infowindow = new google.maps.InfoWindow({
+            //   content: contentString,
+            //   maxWidth: 200,
+            // });
+          //   console.log('[1] before or after?')
+          //   // Adding markers
+            // var marker = null;
+            // this.getMap(map => {
+            //   marker = new google.maps.Marker({
+            //     position: { lat: 42.3601, lng: -71.0589 },
+            //     map: map,
+            //     // icon: '/' + this.iconMap[post.requestType],
+            //   });
+            //   console.log('asdfasdf')
+            //   marker.addListener('click', () => {
+            //     infowindow.open(map, marker);
+            //   });
+
+            // })
+          //   console.log('[2] before or after?')
+
+          // });
         },
         onSubmit(evt) { // when you click submit of new request form
           evt.preventDefault();
           $('#addPostModal').modal('toggle')
-          const payload = {
-            name: this.addPostForm.name,
-            email: this.addPostForm.email,
-            address: this.addPostForm.address,
-            lat: this.lat,
-            lng: this.lng,
-            post: this.addPostForm.post,
-            requestType: this.addPostForm.requestType,
-            helpType: this.addPostForm.helpType,
-          };
-          this.addRequest(payload);
-          this.initForm();
-          // this.geocodeAddress(this.addPostForm, (test) => {
-          //   const payload = {
-          //     name: this.addPostForm.name,
-          //     email: this.addPostForm.email,
-          //     address: this.addPostForm.address,
-          //     lat: test.lat,
-          //     long: test.long,
-          //     request: this.addPostForm.request,
-          //     requestType: this.addPostForm.requestType,
-          //     helpType: this.addPostForm.helpType,
-          //   };
-          //   this.addRequest(payload);
-          //   this.initForm();
-          // });
+          this.geocoder = new window.google.maps.Geocoder();
+          this.geocodeAddress(this.addPostForm, (lat_lngs) => {
+            const payload = {
+              name: this.addPostForm.name,
+              email: this.addPostForm.email,
+              address: this.addPostForm.address,
+              lat: lat_lngs.lat,
+              lng: lat_lngs.lng,
+              post: this.addPostForm.post,
+              requestType: this.addPostForm.requestType,
+              helpType: this.addPostForm.helpType,
+              status: this.addPostForm.status,
+            };
+            console.log(payload)
+            this.addRequest(payload);
+            this.initForm();
+          });
         },
         onReset(evt) {
           evt.preventDefault();
@@ -252,25 +295,30 @@ const APP = new Vue({
             post: post.post,
             requestType: post.requestType,
             helpType: post.helpType,
+            status: post.status,
           }
         },
         onSubmitUpdate(evt) {
           evt.preventDefault();
           $('#editPostModal').modal('toggle')
-          const payload = {
-            name: this.editPostForm.name,
-            email: this.editPostForm.email,
-            address: this.editPostForm.address,
-            lat: this.lat,
-            lng: this.lng,
-            post: this.editPostForm.post,
-            requestType: this.editPostForm.requestType,
-            helpType: this.editPostForm.helpType,
-          };
-          console.log(payload)
-          console.log('this.editPostForm.id',this.editPostForm.id)
-          this.updateRequest(payload, this.editPostForm.id);          
-          this.initForm();
+          this.geocoder = new window.google.maps.Geocoder();
+          this.geocodeAddress(this.editPostForm, (lat_lngs) => {
+            const payload = {
+              name: this.editPostForm.name,
+              email: this.editPostForm.email,
+              address: this.editPostForm.address,
+              lat: lat_lngs.lat,
+              lng: lat_lngs.lng,
+              post: this.editPostForm.post,
+              requestType: this.editPostForm.requestType,
+              helpType: this.editPostForm.helpType,
+              status: this.editPostForm.status,
+            };
+            console.log(payload)
+            this.updateRequest(payload, this.editPostForm.id);
+            this.initForm();
+          });
+
           
           
           // this.geocodeAddress(this.editPostForm, (test) => {
@@ -283,6 +331,7 @@ const APP = new Vue({
           //     request: this.editPostForm.request,
           //     requestType: this.editPostForm.requestType,
           //     helpType: this.editPostForm.helpType,
+          //     status: this.editPostForm.status,
           //   };
           //   this.updateRequest(payload, this.editPostForm.id);
           // });
@@ -295,20 +344,6 @@ const APP = new Vue({
           //   canHelp,
           // };
           // this.updateRequest(payload, this.editPostForm.id);
-        },
-        updateRequest(payload, requestID) {
-          const path = `http://localhost:5000/posts/${requestID}`;
-          axios.put(path, payload)
-            .then(() => {
-              this.getRequests();
-              this.message = 'Request updated!';
-              // this.showMessage = true;
-            })
-            .catch((error) => {
-              // eslint-disable-next-line
-              console.error(error);
-              this.getRequests();
-            });
         },
         onResetUpdate(evt) {
           evt.preventDefault();
