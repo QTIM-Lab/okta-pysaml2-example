@@ -90,15 +90,13 @@ def recreate_db(app=app, User=User, Post=Post):
     db = app.db
     db.drop_all()
     db.create_all()
-    user1 = User(id=1, name='Ben Bearce', email='bbearce@gmail.com', address='23 Aldie St. Allston, MA 02134', lat=42.3601, lng=-71.0589)
-    user2 = User(id=2, name='Kyle Schluns', email='kschluns@gmail.com', address='The Viridian ,Boston, MA', lat=42.3601, lng=-71.1589)
-    user3 = User(id=3, name='Miriam Blackwater', email='mblackwater@gmail.com', address='Boston, MA', lat=42.3601, lng=-71.2589)
+    user1 = User(id=1, name='Ben Bearce', email='bbearce@gmail.com', address='23 Aldie St. Allston, MA 02134', lat=42.359002, lng=-71.1358664)
+    user2 = User(id=2, name='Cloud Bearce', email='bbearce@bu.edu', address='Boston, MA', lat=42.3601, lng=-71.0589)
 
     post1 = Post(userId=user1.id, post="Toilet paper is out in my area", requestType='inHouseHelp', helpType="needHelp", status='un-resolved')
     post2 = Post(userId=user1.id, post="Baby formula is out of stock here.", requestType='inHouseHelp', helpType="needHelp", status='un-resolved')
     post3 = Post(userId=user2.id, post="If anyone needs help shopping, let me know.", requestType='shopping', helpType="canHelp", status='un-resolved')
-    post4 = Post(userId=user3.id, post="I have a care if anyone needs it", requestType='transportation', helpType="canHelp", status='un-resolved')
-    db.session.add_all([user1,user2,user3,post1,post2,post3,post4])
+    db.session.add_all([user1,user2,post1,post2,post3])
     db.session.commit()
 
 
@@ -181,7 +179,7 @@ def load_user(user_id):
 
 @app.route("/")
 def main_page():
-    return render_template('main_page.html', idp_dict=metadata_url_for)
+    return render_template('main_page.html', idp_dict=metadata_url_for, session=session)
 
 
 @app.route("/saml/sso/<idp_name>", methods=['POST'])
@@ -190,9 +188,10 @@ def idp_initiated(idp_name):
     authn_response = saml_client.parse_authn_request_response(
         request.form['SAMLResponse'],
         entity.BINDING_HTTP_POST)
-    authn_response.get_identity()
-    user_info = authn_response.get_subject()
-    username = user_info.text
+    authn_response.get_identity() # First and Last name...not email
+    authn_response.ava # First and Last name...not email...same as above
+    user_info = authn_response.get_subject() # a response tag
+    username = user_info.text # email address from response tag text
     
     print("""
 
@@ -211,22 +210,29 @@ def idp_initiated(idp_name):
     # This is what as known as "Just In Time (JIT) provisioning".
     # What that means is that, if a user in a SAML assertion
     # isn't in the user store, we create that user first, then log them in
+
+    # Original Code
     if username not in user_store:
         user_store[username] = {
             'first_name': authn_response.ava['FirstName'][0],
             'last_name': authn_response.ava['LastName'][0],
             }
     user = User_SAML(username)
+
+    # New sqlite Code
+    # User
+
+    session['user'] = username
     session['saml_attributes'] = authn_response.ava
     login_user(user)
-    url = url_for('user')
+    url = url_for('user') # not getting used
 
     # NOTE:
     #   On a production system, the RelayState MUST be checked
     #   to make sure it doesn't contain dangerous URLs!
     if 'RelayState' in request.form:
         url = request.form['RelayState']
-    return redirect(url)
+    return redirect(url) # an empty string goes to the homepage which is what url_for(user) returns
 
 
 @app.route("/saml/login/<idp_name>")
@@ -252,7 +258,7 @@ def sp_initiated(idp_name):
     return response
 
 
-@app.route("/user")
+@app.route("/user") # Route not build yet...no template
 @login_required
 def user():
     return render_template('user.html', session=session)
@@ -295,7 +301,11 @@ def ping():
 
 @app.route('/posts', methods=['GET', 'POST'])
 def all_requests(app=app, User=User, Post=Post):
-    response_object = {'status': 'success'}
+    # response_object = {'status': 'success'}
+    response_object = {'status': 'success', 
+                       'username':session['user']
+                      }
+    print("Houston we have a user: {}".format(session['user']))
     if request.method == 'POST':
         post_data = request.get_json()
         # Good print loop for seeing data you do\don't receive
@@ -303,8 +313,9 @@ def all_requests(app=app, User=User, Post=Post):
         #     print(post_data.get(i))
 
         # Check if user exists yet
-        if User.query.filter_by(email=post_data.get('email')).first() != None:
-            user = User.query.filter_by(email=post_data.get('email')).first()
+        if User.query.filter_by(email=session['user']).first() != None:
+            # user = User.query.filter_by(email=post_data.get('email')).first() ## Users can decide their email
+            user = User.query.filter_by(email=session['user']).first()
             user.name = post_data.get('name')
             user.address = post_data.get('address')
             user.lat = post_data.get('lat')
@@ -315,14 +326,16 @@ def all_requests(app=app, User=User, Post=Post):
             # If not then make a new user
             new_user = User(
                 name=post_data.get('name'), 
-                email=post_data.get('email'), 
+                # email=post_data.get('email'), # User defined
+                email=session['user'], 
                 address=post_data.get('address'), 
                 lat=post_data.get('lat'), 
                 lng=post_data.get('lng')
             )
             db.session.add(new_user)
             db.session.commit()
-            user = User.query.filter_by(email=post_data.get('email')).first()
+            # user = User.query.filter_by(email=post_data.get('email')).first() # user controlled
+            user = User.query.filter_by(email=session['user']).first()
         
         new_post = Post(
             userId=user.id, 
@@ -340,7 +353,7 @@ def all_requests(app=app, User=User, Post=Post):
     return jsonify(response_object)
 
 # Login
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['POST']) # Don't think this is being used...
 def login():
     if request.method == 'POST':
         response_object = {'status': 'POST'}

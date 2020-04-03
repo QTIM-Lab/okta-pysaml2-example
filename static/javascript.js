@@ -27,18 +27,22 @@ const APP = new Vue({
     // define data - initial display text
     data: {
         iconMap: {
-            transportation: 'transportation.png',
-            inHouseHelp: 'inHouseHelp.png',
-            shopping: 'shopping.png',
+            transportation: 'img/transportation.png',
+            inHouseHelp: 'img/inHouseHelp.png',
+            shopping: 'img/shopping.png',
         },
-        lat: 0,
-        lng: 0,
-        google: '',//delete?
-        geocoder: '',//delete?
+        username: '',
+        lat: 0, // double check we need these...might already be in posts
+        lng: 0, // double check we need these...might already be in posts
         mgh_map: null,
         posts: [],
         markers: [],
         icons: [],
+        message: {
+            message_success: "",
+            message_danger: "",
+            message_warning: "",
+        },
         addPostForm: {
           name: '',
           email: '',
@@ -48,8 +52,6 @@ const APP = new Vue({
           helpType: false,
           status: '',
         },
-        message: false,
-        // showMessage: false,
         editPostForm: {
           id: '',
           name: '',
@@ -102,21 +104,14 @@ const APP = new Vue({
         
         //   }, 100)
         // },
-        getMap(callback) {
-          let vm = this // vm must mean Vue Model...used to model vue instances.
-          function checkForMap() {
-            console.log('checkForMap...')
-            if (vm.mgh_map) callback(vm.map_mgh)
-            else setTimeout(checkForMap, 200)
-          }
-          checkForMap()
-        },
+        // checkIfLoggedIn() {
+
+        // },
         ping() {
             const path = 'http://localhost:5000/ping';
             axios.get(path)
               .then((res) => {
                 this.posts = res.data.posts;
-                // this.updateMap();
                 // this.updateMap(this.posts);
               })
               .catch((error) => {
@@ -129,11 +124,13 @@ const APP = new Vue({
           axios.get(path)
             .then((res) => {
               this.posts = res.data.posts;
-              // this.updateMap(this.posts);
+              this.username = res.data.username;
+              console.log(this.username) //shows old posts still...I think we should user this.markers to to loop through the markers and remove off the map...new methode removeMarkers()
+              // setTimeout((() => {console.log(this.markers);this.updateMap(this.mg_map)}), 3000);
             })
             .catch((error) => {
               // eslint-disable-next-line
-              console.error(error);
+              // console.error(error);
             });
         },
         addRequest(payload) { // actually posts data to db
@@ -141,11 +138,9 @@ const APP = new Vue({
           axios.post(path, payload)
             .then((res) => {
               this.getRequests();
-              // this.message = 'Request added!';
-              this.message = res.data.message
+              this.updateMessage(res.data.message, alert_type='success')
             })
-            .catch((error) => {
-              // eslint-disable-next-line
+            .catch((error) => {              // eslint-disable-next-line
               console.log(error);
               this.getRequests();
             });
@@ -155,11 +150,8 @@ const APP = new Vue({
           axios.put(path, payload)
             .then(() => {
               this.getRequests();
-              this.message = 'Request updated!';
-              // this.showMessage = true;
-            })
-            .catch((error) => {
-              // eslint-disable-next-line
+              this.updateMessage('Request updated!', alert_type='success')
+            }).catch((error) => {              // eslint-disable-next-line
               console.error(error);
               this.getRequests();
             });
@@ -180,6 +172,13 @@ const APP = new Vue({
           this.editPostForm.requestType = '';
           this.editPostForm.helpType = false;
           this.editPostForm.status = '';
+        },
+        updateMessage(message, alert_type) {
+          this.message['message_success'] = "",
+          this.message['message_danger'] = "",
+          this.message['message_warning'] = "",
+
+          this.message['message_'+alert_type] = message
         },
         geocodeAddress(request, callback) {
           // return { lat: 5, long: 5 };
@@ -212,7 +211,6 @@ const APP = new Vue({
         },
         updateMap(mgh_map) {
           this.mgh_map = mgh_map //store map
-
           this.posts.forEach((post,i,array) => {
             this.icons.push('../static/' + this.iconMap[post.requestType])
             marker = new window.google.maps.Marker({
@@ -266,6 +264,7 @@ const APP = new Vue({
           evt.preventDefault();
           $('#addPostModal').modal('toggle')
           this.geocoder = new window.google.maps.Geocoder();
+          console.log(this.addPostForm)
           this.geocodeAddress(this.addPostForm, (lat_lngs) => {
             const payload = {
               name: this.addPostForm.name,
@@ -289,15 +288,20 @@ const APP = new Vue({
           this.initForm();
         },
         editPost(post) {
-          this.editPostForm = {
-            id: post.id,
-            name: post.name,
-            email: post.email,
-            address: post.address,
-            post: post.post,
-            requestType: post.requestType,
-            helpType: post.helpType,
-            status: post.status,
+          if (post.email === this.username) {
+            this.editPostForm = {
+              id: post.id,
+              name: post.name,
+              email: post.email,
+              address: post.address,
+              post: post.post,
+              requestType: post.requestType,
+              helpType: post.helpType,
+              status: post.status,
+            }
+          } else {
+            this.updateMessage("This is not your post. Please don't edit others posts.", alert_type='warning')
+            $('#editPostModal').modal('toggle')
           }
         },
         onSubmitUpdate(evt) {
@@ -358,19 +362,21 @@ const APP = new Vue({
           axios.delete(path)
             .then((res) => {
               this.getRequests();
-              this.message = res.data.message;
-              this.showMessage = true;
-            })
-            .catch((error) => {
+              this.updateMessage(res.data.message, alert_type='success')
+              this.showMessage = true;// do we need this? Delete after a wekk or so
+            }).catch((error) => {
               // eslint-disable-next-line
               console.error(error);
               this.getRequests();
             });
         },
-        onDeleteRequest(request) {
-          this.removeRequest(request.id);
-        },
-    },
+        onDeleteRequest(post) {
+          if (post.email === this.username) {
+            this.removeRequest(post.id);
+          } else {
+            this.updateMessage("This is not your post. Please don't edit others posts.", alert_type='danger')
+          }
+        },    },
 
 
 
