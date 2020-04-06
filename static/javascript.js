@@ -30,6 +30,8 @@ const APP = new Vue({
             transportation: 'img/transportation.png',
             inHouseHelp: 'img/inHouseHelp.png',
             shopping: 'img/shopping.png',
+            petCare: 'img/petCare.png',
+            canHelp: 'img/canHelp.png',
         },
         username: '',
         lat: 0, // double check we need these...might already be in posts
@@ -202,7 +204,7 @@ const APP = new Vue({
             callback(lat_lngs);
           });
         },
-        removeAllMarkers() {
+        removeAllMarkers() { //Fix this
           this.mgh_map.data.forEach((feature) => {
             if (feature.getGeometry().getType() === 'Point') {
               this.mgh_map.data.remove(feature);
@@ -212,7 +214,12 @@ const APP = new Vue({
         updateMap(mgh_map) {
           this.mgh_map = mgh_map //store map
           this.posts.forEach((post,i,array) => {
-            this.icons.push('../static/' + this.iconMap[post.requestType])
+            if (post.helpType === 'canHelp') {
+              this.icons.push('../static/' + this.iconMap[post.helpType])
+            } else {
+              this.icons.push('../static/' + this.iconMap[post.requestType])
+            }
+            
             marker = new window.google.maps.Marker({
               // position: { lat: 42.3601, lng: -71.0589 },
               position: { lat: post.lat, lng: post.lng },

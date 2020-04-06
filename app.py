@@ -25,7 +25,7 @@ from flask import (
     url_for,
     jsonify,
 )
-from flask.ext.login import (
+from flask_login import (
     LoginManager,
     UserMixin,
     current_user,
@@ -33,6 +33,9 @@ from flask.ext.login import (
     login_user,
     logout_user,
 )
+
+from flask_cors import CORS
+
 from flask_bootstrap import Bootstrap
 from saml2 import (
     BINDING_HTTP_POST,
@@ -62,6 +65,7 @@ metadata_url_for = {
 
 
 app = Flask(__name__)
+CORS(app)
 
 Bootstrap(app)
 app.secret_key = str(uuid.uuid4())  # Replace with your secret key
@@ -90,13 +94,101 @@ def recreate_db(app=app, User=User, Post=Post):
     db = app.db
     db.drop_all()
     db.create_all()
-    user1 = User(id=1, name='Ben Bearce', email='bbearce@gmail.com', address='23 Aldie St. Allston, MA 02134', lat=42.359002, lng=-71.1358664)
-    user2 = User(id=2, name='Cloud Bearce', email='bbearce@bu.edu', address='Boston, MA', lat=42.3601, lng=-71.0589)
+    user1 = User(id=1, name='Ben Bearce', email='bbearce@gmail.com')
+    user2 = User(id=2, name='Cloud Bearce', email='bbearce@bu.edu')
 
-    post1 = Post(userId=user1.id, post="Toilet paper is out in my area", requestType='inHouseHelp', helpType="needHelp", status='un-resolved')
-    post2 = Post(userId=user1.id, post="Baby formula is out of stock here.", requestType='inHouseHelp', helpType="needHelp", status='un-resolved')
-    post3 = Post(userId=user2.id, post="If anyone needs help shopping, let me know.", requestType='shopping', helpType="canHelp", status='un-resolved')
-    db.session.add_all([user1,user2,post1,post2,post3])
+    post1 = Post(userId=user1.id, 
+                 post="Toilet paper is out in my area", 
+                 requestType='inHouseHelp', 
+                 helpType="needHelp", 
+                 status='un-resolved',
+                 address='23 Aldie St. Allston, MA 02134',
+                 lat=42.359002,
+                 lng=-71.1358664
+                 )
+
+    post2 = Post(userId=user1.id, 
+                 post="Baby formula is out of stock here.", 
+                 requestType='inHouseHelp', 
+                 helpType="needHelp", 
+                 status='un-resolved', 
+                 address='Boston, MA', 
+                 lat=42.3601, 
+                 lng=-71.0589)
+
+    post3 = Post(userId=user2.id, 
+                 post="If anyone needs help shopping, let me know.", 
+                 requestType='shopping', 
+                 helpType="canHelp", 
+                 status='un-resolved',
+                 address='West Roxbury, Boston, MA', 
+                 lat=42.2797554, 
+                 lng=-71.1626756)
+    
+    post4 = Post(userId=user2.id, 
+                 post="Can someone watch my dog?", 
+                 requestType='shopping', 
+                 helpType="needHelp", 
+                 status='un-resolved',
+                 address='Fenway, Boston, MA', 
+                 lat=42.3428653,
+                 lng=-71.1002881)
+
+    post5 = Post(userId=user2.id, 
+                 post="I can give people rides here every other day.", 
+                 requestType='transportation', 
+                 helpType="canHelp", 
+                 status='un-resolved',
+                 address='Watertown, MA', 
+                 lat=42.3709299, 
+                 lng=	-71.1828321)
+
+    post6 = Post(userId=user1.id, 
+                 post="	I can watch pets for people, but they need to bring them to me.", 
+                 requestType='petCare', 
+                 helpType="canHelp", 
+                 status='un-resolved',
+                 address='Weston, MA', 
+                 lat=42.3667625, 
+                 lng=-71.3031132)
+
+    post7 = Post(userId=user1.id, 
+                 post="I drive by here everyday going to Charlestown. Let me know if anyone needs a car pool from the city.", 
+                 requestType='transportation', 
+                 helpType="canHelp", 
+                 status='un-resolved',
+                 address='Central Rock, Boston, MA', 
+                 lat=42.3651607, 
+                 lng=-71.0589878)
+
+    post8 = Post(userId=user1.id, 
+                 post="Flour is out of stock everywhere I go. Does anyone have extra?", 
+                 requestType='shopping', 
+                 helpType="needHelp", 
+                 status='un-resolved',
+                 address='Medford, MA', 
+                 lat=42.2797554, 
+                 lng=-71.1061639)
+
+    post9 = Post(userId=user1.id, 
+                 post="We are totally out of eggs. Can anyone spare 3-6? I'm trying to make a couple cakes and would be willing to share! :)", 
+                 requestType='shopping', 
+                 helpType="needHelp", 
+                 status='un-resolved',
+                 address='Newton, MA', 
+                 lat=42.3370413, 
+                 lng=-71.2092214)
+
+    post10 = Post(userId=user2.id, 
+                 post="Can I get a one time ride out to Dorchester. I need to make a pickup and don't want to get a ride share at the moment with everything going on. Am willing to car pool with other MGH employees who don't have symptoms.", 
+                 requestType='transportation', 
+                 helpType="needHelp", 
+                 status='un-resolved',
+                 address='Dorchester, MA', 
+                 lat=42.3016305, 
+                 lng=-71.067605)
+
+    db.session.add_all([user1,user2,post1,post2,post3,post4,post5,post6,post7,post8,post9,post10])
     db.session.commit()
 
 
@@ -258,7 +350,7 @@ def sp_initiated(idp_name):
     return response
 
 
-@app.route("/user") # Route not build yet...no template
+@app.route("/user") # Route not built yet...no template
 @login_required
 def user():
     return render_template('user.html', session=session)
@@ -302,10 +394,13 @@ def ping():
 @app.route('/posts', methods=['GET', 'POST'])
 def all_requests(app=app, User=User, Post=Post):
     # response_object = {'status': 'success'}
-    response_object = {'status': 'success', 
-                       'username':session['user']
-                      }
-    print("Houston we have a user: {}".format(session['user']))
+    try:
+        response_object = {'status': 'success', 
+                           'username':session['user']
+                          }
+    except:
+        response_object = {'status': 'success'}
+
     if request.method == 'POST':
         post_data = request.get_json()
         # Good print loop for seeing data you do\don't receive
@@ -317,10 +412,6 @@ def all_requests(app=app, User=User, Post=Post):
             # user = User.query.filter_by(email=post_data.get('email')).first() ## Users can decide their email
             user = User.query.filter_by(email=session['user']).first()
             user.name = post_data.get('name')
-            user.address = post_data.get('address')
-            user.lat = post_data.get('lat')
-            user.lng = post_data.get('lng')
-            print(type(user.lat), type(user.lng))
             db.session.add(user)
         else:
             # If not then make a new user
@@ -328,9 +419,6 @@ def all_requests(app=app, User=User, Post=Post):
                 name=post_data.get('name'), 
                 # email=post_data.get('email'), # User defined
                 email=session['user'], 
-                address=post_data.get('address'), 
-                lat=post_data.get('lat'), 
-                lng=post_data.get('lng')
             )
             db.session.add(new_user)
             db.session.commit()
@@ -340,6 +428,9 @@ def all_requests(app=app, User=User, Post=Post):
         new_post = Post(
             userId=user.id, 
             post=post_data.get('post'), 
+            address=post_data.get('address'), 
+            lat=post_data.get('lat'), 
+            lng=post_data.get('lng'),
             requestType=post_data.get('requestType'), 
             helpType=post_data.get('helpType'), 
             status=post_data.get('status')
@@ -353,28 +444,28 @@ def all_requests(app=app, User=User, Post=Post):
     return jsonify(response_object)
 
 # Login
-@app.route('/login', methods=['POST']) # Don't think this is being used...
-def login():
-    if request.method == 'POST':
-        response_object = {'status': 'POST'}
-        post_data = request.get_json()
-        # Check if user exists in db
-        User = Query()
-        user = db.search(User.email == post_data.get('email'))
-        response_object = {'status': 'POST', 'isUsr':False}
-        print("""
-        email: {}
-        passwd: {}
-        """.format(post_data.get('email'), post_data.get('password')))
-        if len(user) != 0:
-            response_object['isUsr'] = True;
+# @app.route('/login', methods=['POST']) # Don't think this is being used...
+# def login():
+#     if request.method == 'POST':
+#         response_object = {'status': 'POST'}
+#         post_data = request.get_json()
+#         # Check if user exists in db
+#         User = Query()
+#         user = db.search(User.email == post_data.get('email'))
+#         response_object = {'status': 'POST', 'isUsr':False}
+#         print("""
+#         email: {}
+#         passwd: {}
+#         """.format(post_data.get('email'), post_data.get('password')))
+#         if len(user) != 0:
+#             response_object['isUsr'] = True;
 
-    elif request.method == 'GET':
-        response_object = {'status': 'GET'}
-    else:
-        response_object = {'status': 'Something Else...'}
+#     elif request.method == 'GET':
+#         response_object = {'status': 'GET'}
+#     else:
+#         response_object = {'status': 'Something Else...'}
 
-    return jsonify(response_object)
+#     return jsonify(response_object)
 
 
 # Delete\Update api handler
@@ -402,28 +493,16 @@ def single_post(post_id):
         post.requestType = put_data.get('requestType')
         post.helpType = put_data.get('helpType')
         post.status = put_data.get('status')
+        post.address = put_data.get('address')
+        post.lat = put_data.get('lat')
+        post.lng = put_data.get('lng')
 
         user.name = put_data.get('name')
-        user.address = put_data.get('address')
-        user.lat = put_data.get('lat')
-        user.lng = put_data.get('lng')
         db.session.add(user)
 
         db.session.add(post)
         db.session.commit()
 
-        # db.insert({
-        #     'id': uuid.uuid4().hex,
-        #     'name': put_data.get('name'),
-        #     'email': put_data.get('email'),
-        #     'address': put_data.get('address'),
-        #     'lat': put_data.get('lat'),
-        #     'long': put_data.get('long'),
-        #     'request': put_data.get('request'),
-        #     'requestType': put_data.get('requestType'),
-        #     'needHelp': put_data.get('needHelp'),
-        #     'canHelp': put_data.get('canHelp')
-        # })
         response_object['message'] = 'Response updated for {}'.format(user.name)
     elif request.method == 'DELETE':
         post = Post.query.filter_by(id=post_id).first()
@@ -434,65 +513,6 @@ def single_post(post_id):
     else:
         response_object['message'] = 'Request neither DELETE nor PUT...'
     return jsonify(response_object)
-
-
-# Helper for clearing and reloading the db
-# def recreate_db():
-#     # Base
-#     import uuid
-
-#     # Flask
-#     from flask import Flask, jsonify, request
-#     from flask_cors import CORS
-
-#     # DB
-#     from tinydb import TinyDB, Query
-
-#     db = TinyDB('./database.json')
-#     db.purge()
-#     db.insert_multiple([
-#         {
-#             'id': uuid.uuid4().hex,
-#             'name': 'Jack Kerouac',
-#             'email': 'test@gmail.com',
-#             'address': 'Park Drive,Boston, MA',
-#             'lat': 42.341590,
-#             'long': -71.097740,
-#             'request': 'Lack of diapers in my area, can anyone help?',
-#             'requestType': 'shopping',
-#             'needHelp': False,
-#             'canHelp': False,
-#         },
-#         {
-#             'id': uuid.uuid4().hex,
-#             'name': 'J. K. Rowling',
-#             'email': 'test@gmail.com',
-#             'address': '23 Aldie St., Allston, MA 02134',
-#             'lat': 42.358960,
-#             'long': -71.135920,
-#             'request': 'Can someone watch my kid from 2-3pm tomorrow?',
-#             'requestType': 'inHouseHelp',
-#             'needHelp': False,
-#             'canHelp': False
-
-#         },
-#         {
-#             'id': uuid.uuid4().hex,
-#             'name': 'Ben B',
-#             'email': 'test@gmail.com',
-#             'address': '1000 Commonwealth Ave., Boston, MA 02135',
-#             'lat': 42.349420,
-#             'long': -71.132920,
-#             'request': 'I need a baby sitter this Friday (3/20/2020) from 1-2pm/ Is anyone available?',
-#             'requestType': 'inHouseHelp',
-#             'needHelp': False,
-#             'canHelp': False
-#         }
-#     ])
-
-
-
-
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))

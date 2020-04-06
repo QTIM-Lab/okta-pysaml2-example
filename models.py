@@ -21,18 +21,11 @@ from __main__ import db, UserMixin
 
 
 
-
-
-
-
 class User(db.Model, UserMixin): #UserMixin, when ready
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(64), index=True)
     email = db.Column(db.String(64), unique=True, index=True)
-    address = db.Column(db.String(64), index=True)
-    lat = db.Column(db.Float)
-    lng = db.Column(db.Float)
     
     # Relatoinships
     post = db.relationship('Post', backref='user', cascade="all, delete-orphan" , lazy='dynamic')
@@ -46,9 +39,6 @@ class User(db.Model, UserMixin): #UserMixin, when ready
            'id' : self.id,
            'name': self.name,
            'email': self.email,
-           'address': self.address,
-           'lat': self.lat,
-           'lng': self.lng,
        }
 
 
@@ -58,6 +48,9 @@ class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     userId = db.Column(db.Integer, db.ForeignKey('users.id'))
     post = db.Column(db.Text())
+    address = db.Column(db.String(64), index=True)
+    lat = db.Column(db.Float)
+    lng = db.Column(db.Float)
     requestType = db.Column(db.String(64))
     helpType = db.Column(db.String(64))
     status = db.Column(db.String(64))
@@ -72,9 +65,9 @@ class Post(db.Model):
            'userId': self.userId, # native property
            'name': User.query.filter_by(id=self.userId).first().name,
            'email': User.query.filter_by(id=self.userId).first().email,
-           'address': User.query.filter_by(id=self.userId).first().address,
-           'lat': User.query.filter_by(id=self.userId).first().lat,
-           'lng': User.query.filter_by(id=self.userId).first().lng,
+           'address': self.address,
+           'lat': self.lat,
+           'lng': self.lng,
            'post': self.post, # native property
            'requestType': self.requestType, # native property
            'helpType': self.helpType, # native property
