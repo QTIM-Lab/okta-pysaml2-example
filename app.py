@@ -85,6 +85,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or 'sqlit
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 from models import User, Post
+# Below line is not being used but was part of an example 
 user_store = {'bbearce@gmail.com': {}} # {'FirstName':'Benjamin','LastName':'Bearce'}}
 
 
@@ -325,6 +326,10 @@ def idp_initiated(idp_name):
     # User
 
     session['user'] = username
+
+    # changed templates/main_page.html to use session['user'] 
+    # which is aliased as "username" above and is actually "authn_response.get_subject().text" \
+    # and not "saml_attributes" which also came from the same response "authn_response.ava "
     session['saml_attributes'] = authn_response.ava
     login_user(user)
     url = url_for('user') # not getting used
@@ -334,7 +339,8 @@ def idp_initiated(idp_name):
     #   to make sure it doesn't contain dangerous URLs!
     if 'RelayState' in request.form:
         url = request.form['RelayState']
-    return redirect(url) # an empty string goes to the homepage which is what url_for(user) returns
+    print("[{}]".format(url))
+    return redirect('/') # an empty string goes to the homepage which is what url_for(user) returns
 
 
 @app.route("/saml/login/<idp_name>")
