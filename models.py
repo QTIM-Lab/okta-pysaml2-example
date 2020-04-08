@@ -25,7 +25,8 @@ class User(db.Model, UserMixin): #UserMixin, when ready
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(64), index=True)
-    email = db.Column(db.String(64), unique=True, index=True)
+    partnersID = db.Column(db.String(64), unique=True, index=True)
+    email = db.Column(db.String(64), index=True)
     
     # Relatoinships
     post = db.relationship('Post', backref='user', cascade="all, delete-orphan" , lazy='dynamic')
@@ -38,6 +39,7 @@ class User(db.Model, UserMixin): #UserMixin, when ready
        return {
            'id' : self.id,
            'name': self.name,
+           'partnersID': self.partnersID,
            'email': self.email,
        }
 
@@ -51,6 +53,7 @@ class Post(db.Model):
     address = db.Column(db.String(64), index=True)
     lat = db.Column(db.Float)
     lng = db.Column(db.Float)
+    date=db.Column(db.DateTime())
     requestType = db.Column(db.String(64))
     helpType = db.Column(db.String(64))
     status = db.Column(db.String(64))
@@ -64,10 +67,12 @@ class Post(db.Model):
            'id' : self.id, # native property
            'userId': self.userId, # native property
            'name': User.query.filter_by(id=self.userId).first().name,
+           'partnersID': User.query.filter_by(id=self.userId).first().partnersID,
            'email': User.query.filter_by(id=self.userId).first().email,
            'address': self.address,
            'lat': self.lat,
            'lng': self.lng,
+           'date': self.date, # self.date.strftime('%x'), # If you want to format it going in. Currently letting JS handle formatting
            'post': self.post, # native property
            'requestType': self.requestType, # native property
            'helpType': self.helpType, # native property

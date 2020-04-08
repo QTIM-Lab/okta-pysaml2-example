@@ -1,3 +1,9 @@
+
+// $(document).ready(function() {
+//   $('#example').DataTable();
+// });
+
+
 // initMap()
 // function initMap() {
     
@@ -38,6 +44,11 @@ const APP = new Vue({
         lng: 0, // double check we need these...might already be in posts
         mgh_map: null,
         posts: [],
+        currentSort: 'date', // for table
+        currentSortDir: 'desc', // for table
+        pageSize: 5, // for table
+        currentPage: 1, // for table
+        searchQuery: null, // for table
         markers: [],
         icons: [],
         message: {
@@ -70,11 +81,6 @@ const APP = new Vue({
       this.getRequests()
     },
     mounted() {
-        // axios.get('http://localhost:5000/ping').then(response => {
-        //     // console.log(response.data);
-        //     // this.results = "this is from mounted()";
-        //     })
-        
         function initMap(callback) {
           // data() not accessible here
           setTimeout(() => {
@@ -88,27 +94,47 @@ const APP = new Vue({
           }, 1000)
         }
   
-        initMap(this.updateMap)
-        
+        initMap(this.updateMap); 
+    },
+    computed: {
+      sortedPosts:function() {
+        return this.posts.filter((post, index) => {
+          if (this.searchQuery) {
+            return this.searchQuery.toLowerCase().split(' ').every(v => post.post.toLowerCase().includes(v))
+          } else {
+            return true
+          }
+        }).sort((a,b) => {
+          let modifier = 1;
+          if(this.currentSortDir === 'desc') modifier = -1;
+          if (this.currentSort === 'date') {
+            if(Date.parse(a[this.currentSort]) < Date.parse(b[this.currentSort])) return -1 * modifier;
+            if(Date.parse(a[this.currentSort]) > Date.parse(b[this.currentSort])) return 1 * modifier;            
+          } 
+          if(a[this.currentSort] < b[this.currentSort]) return -1 * modifier;
+          if(a[this.currentSort] > b[this.currentSort]) return 1 * modifier;
+          return 0;
+        }).filter((row, index) => {
+          let start = (this.currentPage-1)*this.pageSize;
+          let end = this.currentPage*this.pageSize;
+          if(index >= start && index < end) return true;
+        });
+      }
     },
     methods: {
-        // initMap() {
-        //   setTimeout(() => {
-        //     // The location of boston
-        //     var boston = {lat: 42.3601, lng: -71.0589};
-        //     // The map, centered at boston
-        //     this.mgh_map = new google.maps.Map(
-        //         document.getElementById('map'), {zoom: 11, center: boston});
-            
-        //     // The marker, positioned at boston
-        //     // var marker = new google.maps.Marker({position: boston, map: map});
-        //     $("#map").css('height', '400px')
-        
-        //   }, 100)
-        // },
-        // checkIfLoggedIn() {
-
-        // },
+        nextPage:function() {
+          if((this.currentPage*this.pageSize) < this.posts.length) this.currentPage++;
+        },
+        prevPage:function() {
+          if(this.currentPage > 1) this.currentPage--;
+        },
+        sort(s) {
+          //if s == current sort, reverse
+          if(s === this.currentSort) {
+            this.currentSortDir = this.currentSortDir==='asc'?'desc':'asc';
+          }
+          this.currentSort = s;
+        },
         ping() {
             const path = 'http://localhost:5000/ping';
             axios.get(path)
@@ -127,7 +153,7 @@ const APP = new Vue({
             .then((res) => {
               this.posts = res.data.posts;
               this.username = res.data.username;
-              console.log(this.username) //shows old posts still...I think we should user this.markers to to loop through the markers and remove off the map...new methode removeMarkers()
+              // console.log(this.username) //shows old posts still...I think we should user this.markers to to loop through the markers and remove off the map...new methode removeMarkers()
               // setTimeout((() => {console.log(this.markers);this.updateMap(this.mg_map)}), 3000);
             })
             .catch((error) => {
@@ -232,8 +258,8 @@ const APP = new Vue({
               content: contentString,
               maxWidth: 200,
             });
-            console.log(i)
-            console.log(this.markers[i])
+            // console.log(i)
+            // console.log(this.markers[i])
             marker.addListener('click', () => {
               infowindow.open(this.mgh_map, this.markers[i]);
             });
@@ -271,7 +297,7 @@ const APP = new Vue({
           evt.preventDefault();
           $('#addPostModal').modal('toggle')
           this.geocoder = new window.google.maps.Geocoder();
-          console.log(this.addPostForm)
+          // console.log(this.addPostForm)
           this.geocodeAddress(this.addPostForm, (lat_lngs) => {
             const payload = {
               name: this.addPostForm.name,
@@ -282,9 +308,9 @@ const APP = new Vue({
               post: this.addPostForm.post,
               requestType: this.addPostForm.requestType,
               helpType: this.addPostForm.helpType,
-              status: this.addPostForm.status,
+              status: 'un-resolved',// this.addPostForm.status, // if we want to control status in the future
             };
-            console.log(payload)
+            // console.log(payload)
             this.addRequest(payload);
             this.initForm();
           });
@@ -295,7 +321,7 @@ const APP = new Vue({
           this.initForm();
         },
         editPost(post) {
-          if (post.email === this.username) {
+          if (post.partnersID === this.username) {
             this.editPostForm = {
               id: post.id,
               name: post.name,
@@ -307,13 +333,13 @@ const APP = new Vue({
               status: post.status,
             }
           } else {
-            this.updateMessage("This is not your post. Please don't edit others posts.", alert_type='warning')
             $('#editPostModal').modal('toggle')
+            this.updateMessage("This is not your post. Please don't edit others posts.", alert_type='warning')
           }
         },
         onSubmitUpdate(evt) {
-          evt.preventDefault();
           $('#editPostModal').modal('toggle')
+          evt.preventDefault();
           this.geocoder = new window.google.maps.Geocoder();
           this.geocodeAddress(this.editPostForm, (lat_lngs) => {
             const payload = {
@@ -327,7 +353,7 @@ const APP = new Vue({
               helpType: this.editPostForm.helpType,
               status: this.editPostForm.status,
             };
-            console.log(payload)
+            // console.log(payload)
             this.updateRequest(payload, this.editPostForm.id);
             this.initForm();
           });

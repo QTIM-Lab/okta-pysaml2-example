@@ -12,9 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import logging
-import os
-import uuid
+import logging, os, uuid, datetime as dt
 
 from flask import (
     Flask,
@@ -55,6 +53,8 @@ import requests
 #   for your concept of "customer company", "group", "organization", or "team"
 metadata_url_for = {
     'example-okta-com': 'https://dev-942176.okta.com/app/exk50kb6gWzX9CStj4x6/sso/saml/metadata'
+    # 'partners-mgh-okta-com': 'https://partnershealthcare.okta.com/app/partnershealthcare_communityhelpmgh_1/exk3f7lgfdSGdSsXE297/sso/saml'
+    # 'partners-mgh-okta-com':'https://partnershealthcare.okta.com/app/exk3f7lgfdSGdSsXE297/sso/saml/metadata'
     # For testing with http://saml.oktadev.com use the following:
     # 'test': 'http://idp.oktadev.com/metadata',
     # WARNING WARNING WARNING
@@ -94,14 +94,15 @@ def recreate_db(app=app, User=User, Post=Post):
     db = app.db
     db.drop_all()
     db.create_all()
-    user1 = User(id=1, name='Ben Bearce', email='bbearce@gmail.com')
-    user2 = User(id=2, name='Cloud Bearce', email='bbearce@bu.edu')
+    user1 = User(id=1, name='Ben Bearce', partnersID='bbearce@gmail.com', email='bbearce@gmail.com')
+    user2 = User(id=2, name='Cloud Bearce', partnersID='bbearce@bu.edu', email='bbearce@bu.edu')
 
     post1 = Post(userId=user1.id, 
                  post="Toilet paper is out in my area", 
                  requestType='inHouseHelp', 
                  helpType="needHelp", 
                  status='un-resolved',
+                 date=dt.datetime(2020, 3, 1),
                  address='23 Aldie St. Allston, MA 02134',
                  lat=42.359002,
                  lng=-71.1358664
@@ -111,7 +112,8 @@ def recreate_db(app=app, User=User, Post=Post):
                  post="Baby formula is out of stock here.", 
                  requestType='inHouseHelp', 
                  helpType="needHelp", 
-                 status='un-resolved', 
+                 status='un-resolved',
+                 date=dt.datetime(2020, 3, 5),
                  address='Boston, MA', 
                  lat=42.3601, 
                  lng=-71.0589)
@@ -121,6 +123,7 @@ def recreate_db(app=app, User=User, Post=Post):
                  requestType='shopping', 
                  helpType="canHelp", 
                  status='un-resolved',
+                 date=dt.datetime(2020, 3, 10),
                  address='West Roxbury, Boston, MA', 
                  lat=42.2797554, 
                  lng=-71.1626756)
@@ -130,6 +133,7 @@ def recreate_db(app=app, User=User, Post=Post):
                  requestType='shopping', 
                  helpType="needHelp", 
                  status='un-resolved',
+                 date=dt.datetime(2020, 3, 12),
                  address='Fenway, Boston, MA', 
                  lat=42.3428653,
                  lng=-71.1002881)
@@ -139,6 +143,7 @@ def recreate_db(app=app, User=User, Post=Post):
                  requestType='transportation', 
                  helpType="canHelp", 
                  status='un-resolved',
+                 date=dt.datetime(2020, 3, 15),
                  address='Watertown, MA', 
                  lat=42.3709299, 
                  lng=	-71.1828321)
@@ -148,6 +153,7 @@ def recreate_db(app=app, User=User, Post=Post):
                  requestType='petCare', 
                  helpType="canHelp", 
                  status='un-resolved',
+                 date=dt.datetime(2020, 3, 17),
                  address='Weston, MA', 
                  lat=42.3667625, 
                  lng=-71.3031132)
@@ -157,6 +163,7 @@ def recreate_db(app=app, User=User, Post=Post):
                  requestType='transportation', 
                  helpType="canHelp", 
                  status='un-resolved',
+                 date=dt.datetime(2020, 3, 20),
                  address='Central Rock, Boston, MA', 
                  lat=42.3651607, 
                  lng=-71.0589878)
@@ -166,6 +173,7 @@ def recreate_db(app=app, User=User, Post=Post):
                  requestType='shopping', 
                  helpType="needHelp", 
                  status='un-resolved',
+                 date=dt.datetime(2020, 3, 27),
                  address='Medford, MA', 
                  lat=42.2797554, 
                  lng=-71.1061639)
@@ -175,6 +183,7 @@ def recreate_db(app=app, User=User, Post=Post):
                  requestType='shopping', 
                  helpType="needHelp", 
                  status='un-resolved',
+                 date=dt.datetime(2020, 4, 1),
                  address='Newton, MA', 
                  lat=42.3370413, 
                  lng=-71.2092214)
@@ -184,6 +193,7 @@ def recreate_db(app=app, User=User, Post=Post):
                  requestType='transportation', 
                  helpType="needHelp", 
                  status='un-resolved',
+                 date=dt.datetime.now(),
                  address='Dorchester, MA', 
                  lat=42.3016305, 
                  lng=-71.067605)
@@ -386,7 +396,6 @@ def remove_request(post_id):
 def ping():
     from models import User, Post
     user = User.query.filter_by(name='Ben Bearce').first()
-    # post = Post.query.filter_by(userId=user.id).first()
     posts = [post.serialize() for post in Post.query.all()]
     return jsonify(response = 'pong!', user=user.serialize(), posts=posts)
 
@@ -404,26 +413,25 @@ def all_requests(app=app, User=User, Post=Post):
     if request.method == 'POST':
         post_data = request.get_json()
         # Good print loop for seeing data you do\don't receive
-        # for i in post_data:
-        #     print(post_data.get(i))
+        for i in post_data:
+            print('{}: '.format(i),post_data.get(i))
 
         # Check if user exists yet
-        if User.query.filter_by(email=session['user']).first() != None:
+        if User.query.filter_by(partnersID=session['user']).first() != None:
             # user = User.query.filter_by(email=post_data.get('email')).first() ## Users can decide their email
-            user = User.query.filter_by(email=session['user']).first()
+            user = User.query.filter_by(partnersID=session['user']).first()
             user.name = post_data.get('name')
             db.session.add(user)
         else:
             # If not then make a new user
             new_user = User(
                 name=post_data.get('name'), 
-                # email=post_data.get('email'), # User defined
-                email=session['user'], 
+                partnersID=session['user'], 
+                email=post_data.get('email'), # User defined
             )
             db.session.add(new_user)
             db.session.commit()
-            # user = User.query.filter_by(email=post_data.get('email')).first() # user controlled
-            user = User.query.filter_by(email=session['user']).first()
+            user = User.query.filter_by(partnersID=session['user']).first()
         
         new_post = Post(
             userId=user.id, 
@@ -431,6 +439,7 @@ def all_requests(app=app, User=User, Post=Post):
             address=post_data.get('address'), 
             lat=post_data.get('lat'), 
             lng=post_data.get('lng'),
+            date=dt.datetime.now(),
             requestType=post_data.get('requestType'), 
             helpType=post_data.get('helpType'), 
             status=post_data.get('status')
@@ -440,7 +449,8 @@ def all_requests(app=app, User=User, Post=Post):
 
         response_object['message'] = 'Response added for {}'.format(user.name)
     else:
-        response_object['posts'] = [post.serialize() for post in Post.query.all()]
+
+        response_object['posts'] = [post.serialize() for post in Post.query.filter_by(status='un-resolved')]
     return jsonify(response_object)
 
 # Login
@@ -496,8 +506,10 @@ def single_post(post_id):
         post.address = put_data.get('address')
         post.lat = put_data.get('lat')
         post.lng = put_data.get('lng')
+        post.date = dt.datetime.now()
 
         user.name = put_data.get('name')
+        user.email = put_data.get('email')
         db.session.add(user)
 
         db.session.add(post)
@@ -505,6 +517,11 @@ def single_post(post_id):
 
         response_object['message'] = 'Response updated for {}'.format(user.name)
     elif request.method == 'DELETE':
+        # I left this code here as a template
+        # in case we want this back for some reason. 
+        # For those that see this in the future, this
+        # has been disabled from the front end and 
+        # is currently not reachable
         post = Post.query.filter_by(id=post_id).first()
         user = User.query.filter_by(id=post.userId).first()
         db.session.delete(post)

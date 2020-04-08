@@ -1,9 +1,12 @@
-<div id=app class=container>
+<div id=app class=container style="width: 100%">
     
     
     <div class="row"> 
         <div class="alert alert-success" role="alert">
-            Please hit refresh to see your pin show up
+            <strong>Please hit refresh to see your pin show up</strong>
+        </div>
+        <div class="alert alert-warning" role="alert">
+            <strong>Please don't enter street number for your address. Street, City, Zip should be all you provide.</strong>
         </div>
         <div id="map" ref="mgh_map"></div>
     </div>
@@ -26,31 +29,94 @@
 
         
 
-        <hr>        
+        <hr>
+        <br>    
+        <label for="searchTable">Search Posts:</label>
+        <input id=searchTable class="form-control" type="text" v-model="searchQuery" placeholder="Search Posts"/>
+        <br>
         <table id="table" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
             <thead>
+                <col width="150">
+                <col width="100">
+                <col width="100">
+                <col width="200">
+                <col width="150">
+                <col width="400">
+                <col width="100">
+                <col width="100">
             <tr>
-                <th class="th-sm">Name</th>
-                <th class="th-sm">Email</th> 
-                <th class="th-sm">Address</th>
-                <th class="th-sm">Post</th>
-                <th class="th-sm">Request Type</th>
-                <th class="th-sm">Help Type</th>
-                <th class="th-sm">Status</th>
+                <th @click="sort('date')" class="th-sm" style="inline-block">Date
+                    <div class=inline> <!-- These are the arrows -->
+                        <div class="arrow-up"></div>
+                        <div class=spacer></div>
+                        <div class="arrow-down"></div>
+                    </div>
+                </th>
+                <th @click="sort('name')" class="th-sm" style="inline-block">Name
+                    <div class=inline> <!-- These are the arrows -->
+                        <div class="arrow-up"></div>
+                        <div class=spacer></div>
+                        <div class="arrow-down"></div>
+                    </div>
+                </th>
+                <th @click="sort('partnersID')" class="th-sm headerSortUp">PartnersID
+                    <div class=inline>
+                        <div class="arrow-up"></div>
+                        <div class=spacer></div>
+                        <div class="arrow-down"></div>
+                    </div>
+                </th>
+                <th @click="sort('email')" class="th-sm headerSortUp">Email
+                    <div class=inline>
+                        <div class="arrow-up"></div>
+                        <div class=spacer></div>
+                        <div class="arrow-down"></div>
+                    </div>
+                </th>  
+                <th @click="sort('address')" class="th-sm">Address
+                    <div class=inline>
+                        <div class="arrow-up"></div>
+                        <div class=spacer></div>
+                        <div class="arrow-down"></div>
+                    </div>
+                </th>
+                <th @click="sort('post')" class="th-sm">Post
+                    <div class=inline>
+                        <div class="arrow-up"></div>
+                        <div class=spacer></div>
+                        <div class="arrow-down"></div>
+                    </div>
+                </th>
+                <th @click="sort('requestType')" class="th-sm">Request Type
+                    <div class=inline>
+                        <div class="arrow-up"></div>
+                        <div class=spacer></div>
+                        <div class="arrow-down"></div>
+                    </div>
+                </th>
+                <th @click="sort('helpType')" class="th-sm">Help Type
+                    <div class=inline>
+                        <div class="arrow-up"></div>
+                        <div class=spacer></div>
+                        <div class="arrow-down"></div>
+                    </div>
+                </th>
                 <th class="th-sm">Edit Post</th>
-                <th class="th-sm">Delete Post</th>
+                <!-- <th class="th-sm">Delete Post</th> -->
             </tr>
             </thead>
             <tbody>
 
-            <tr v-for="(post, index) in posts" :key="index">
+            <tr v-for="(post, index) in sortedPosts" :key="index">
+            <!-- <tr v-for="(post, index) in posts" :key="index"></tr> THIS IS FOR A NOTHING FANCY TABLE-->
+                <td>{% raw %} {{ post['date'] }} {% endraw %}</td>    
                 <td>{% raw %} {{ post['name'] }} {% endraw %}</td>
+                <td>{% raw %} {{ post['partnersID'] }} {% endraw %}</td>
                 <td>{% raw %} {{ post['email'] }} {% endraw %}</td>
                 <td>{% raw %} {{ post['address'] }} {% endraw %}</td>
                 <td>{% raw %} {{ post['post'] }} {% endraw %}</td>
                 <td>{% raw %} {{ post['requestType'] }} {% endraw %}</td>
                 <td>{% raw %} {{ post['helpType'] }} {% endraw %}</td>
-                <td>{% raw %} {{ post['status'] }} {% endraw %}</td>
                 <td>
                     <button type="button" 
                             class="btn btn-primary dropdown-item" 
@@ -60,7 +126,7 @@
                             Update
                     </button>
                 </td>
-                <td>
+                <!-- <td>
                     <button type="button" 
                             class="btn btn-danger dropdown-item" 
                             data-toggle="modal" 
@@ -68,25 +134,30 @@
                             @click="onDeleteRequest(post)">
                             Delete
                     </button>
-                </td>
+                </td> -->
 
-                </td>
             </tr>
             </tbody>
             <tfoot>
             <tr>
+                <th class="th-sm">Date</th>
                 <th class="th-sm">Name</th>
+                <th class="th-sm">PartnersID</th>
                 <th class="th-sm">Email</th>
                 <th class="th-sm">Address</th>
                 <th class="th-sm">Post</th>
                 <th class="th-sm">Request Type</th>
                 <th class="th-sm">Help Type</th>
-                <th class="th-sm">Status</th>
                 <th class="th-sm">Edit Post</th>
-                <th class="th-sm">Edit Post</th>
+                <!-- <th class="th-sm">Delete Post</th> -->
             </tr>
             </tfoot>
         </table>
+        <p>
+            <button @click="prevPage">Previous</button> 
+            <button @click="nextPage">Next</button>
+            <span>{% raw %} {{ currentPage }} {% endraw %}/{% raw %} {{ Math.ceil(posts.length/pageSize) }} {% endraw %} pages</span>
+        </p>
 
 
 
@@ -108,11 +179,11 @@
                                 <label for="addPostName">Name</label>
                                 <input v-model="addPostForm.name" type="text" class="form-control" id="addPostName" placeholder="Name">
                             </div>
-                            <!-- <div class="form-group">
+                            <div class="form-group">
                                 <label for="addPostEmail1">Email address</label>
                                 <input v-model="addPostForm.email" type="email" class="form-control" id="addPostEmail1" aria-describedby="emailHelp" placeholder="Enter email">
                                 <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
-                            </div> -->
+                            </div>
                             <div class="form-group">
                                 <label for="addPostAddress">Zip Code</label>
                                 <input v-model="addPostForm.address" type="address" class="form-control" id="addPostAddress" placeholder="address">
@@ -139,7 +210,7 @@
                             </div>
                             
                             <div class="form-group">
-                                <label for="">What service do you need?</label>
+                                <label for="">What service do you need or can assist with or can assist with?</label>
                                 <div class="form-check">
                                     <input v-model="addPostForm.requestType" class="form-check-input" type="radio" name="addPostService" id="addPostTransportation" value="transportation" checked>
                                     <label class="form-check-label" for="addPostTransportation">
@@ -166,7 +237,7 @@
                                 </div>
                             </div>
 
-                            <div class="form-group">
+                            <!-- <div class="form-group">
                                 <label for="">Post Status?</label>
                                 <div class="form-check">
                                     <input v-model="addPostForm.status" class="form-check-input" type="radio" name="addPostResolved" id="addPostResolved" value='resolved' checked>
@@ -180,7 +251,7 @@
                                     Unresolved
                                     </label>
                                 </div>
-                            </div>
+                            </div> -->
 
                             <button type="submit" class="btn btn-primary">Submit</button>
                         </form>
@@ -210,11 +281,11 @@
                                 <label for="editPostName">Name</label>
                                 <input v-model="editPostForm.name" type="text" class="form-control" id="editPostName" placeholder="Name">
                             </div>
-                            <!-- <div class="form-group">
+                            <div class="form-group">
                                 <label for="editPostEmail1">Email address</label>
                                 <input v-model="editPostForm.email" type="email" class="form-control" id="editPostEmail1" aria-describedby="emailHelp" placeholder="Enter email">
                                 <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
-                            </div> -->
+                            </div>
                             <div class="form-group">
                                 <label for="editPostAddress">Zip Code</label>
                                 <input v-model="editPostForm.address" type="address" class="form-control" id="editPostAddress" placeholder="address">
@@ -241,7 +312,7 @@
                             </div>
                             
                             <div class="form-group">
-                                <label for="">What service do you need?</label>
+                                <label for="">What service do you need or can assist with?</label>
                                 <div class="form-check">
                                     <input v-model="editPostForm.requestType" class="form-check-input" type="radio" name="editPostService" id="editPostTransportation" value="transportation" checked>
                                     <label class="form-check-label" for="editPostTransportation">
@@ -277,9 +348,9 @@
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input v-model="editPostForm.status" class="form-check-input" type="radio" name="editPostUnresolved" id="editPostUnresolved" value='un-resolved'>
-                                    <label class="form-check-label" for="editPostUnresolved">
-                                    Unresolved
+                                    <input v-model="editPostForm.status" class="form-check-input" type="radio" name="editPostNotNeeded" id="editPostNotNeeded" value='not-needed'>
+                                    <label class="form-check-label" for="editPostNotNeeded">
+                                    Not Needed Anymore
                                     </label>
                                 </div>
                             </div>
@@ -295,6 +366,8 @@
         </div>
 
     </div>
+
+    <div class=row></div>
 
 </div>
 

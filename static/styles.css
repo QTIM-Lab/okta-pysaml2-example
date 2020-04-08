@@ -19,3 +19,44 @@
 .greeting {
     font-size: 20px;
 }
+
+/* --- Table Styles --- */
+
+/* Search Bar */
+
+#searchTable {
+    width: 20%;
+    /* float: right; */
+}
+
+/* Arrows for sorting on table */
+.inline {
+    display: inline-block;
+    float: right;
+}
+
+.arrow-up {
+    width: 0; 
+    height: 0; 
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+
+    border-bottom: 5px solid black;
+}
+
+.spacer {
+    border-top: 1px solid white;
+    border-bottom: 0px;
+    border-right: 0px;
+    border-left: 0px;
+}
+
+.arrow-down {
+    width: 0; 
+    height: 0; 
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+
+    border-top: 5px solid black;
+}
+
