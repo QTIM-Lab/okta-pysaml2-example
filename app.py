@@ -44,6 +44,13 @@ from saml2.client import Saml2Client
 from saml2.config import Config as Saml2Config
 import requests
 
+# from OpenSSL import SSL
+import ssl
+context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+
+context.load_cert_chain('community-help.mgh.harvard.edu.pem.crt', keyfile='community-help.mgh.harvard.edu.pem.key')
+
+
 # metadata_url_for contains PER APPLICATION configuration settings.
 # Each SAML service that you support will have different values here.
 #
@@ -545,7 +552,7 @@ def tutorial():
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 443))
     if port == 5000:
         app.debug = True
-    app.run(host='localhost', port=port)
+    app.run(host='0.0.0.0', port=port, ssl_context=context) #("community-help.mgh.harvard.edu.key","community-help.mgh.harvard.edu.crt"))

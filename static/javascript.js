@@ -46,7 +46,7 @@ const APP = new Vue({
         posts: [],
         currentSort: 'date', // for table
         currentSortDir: 'desc', // for table
-        pageSize: 5, // for table
+        pageSize: 10, // for table
         currentPage: 1, // for table
         searchQuery: null, // for table
         markers: [],
@@ -136,7 +136,7 @@ const APP = new Vue({
           this.currentSort = s;
         },
         ping() {
-            const path = 'http://localhost:5000/ping';
+            const path = 'https://0.0.0.0:443/ping';
             axios.get(path)
               .then((res) => {
                 this.posts = res.data.posts;
@@ -148,7 +148,7 @@ const APP = new Vue({
               });
         },
         getRequests() {
-          const path = 'http://localhost:5000/posts';
+          const path = 'https://0.0.0.0:443/posts';
           axios.get(path)
             .then((res) => {
               this.posts = res.data.posts;
@@ -162,7 +162,7 @@ const APP = new Vue({
             });
         },
         addRequest(payload) { // actually posts data to db
-          const path = 'http://localhost:5000/posts';
+          const path = 'https://0.0.0.0:443/posts';
           axios.post(path, payload)
             .then((res) => {
               this.getRequests();
@@ -174,7 +174,7 @@ const APP = new Vue({
             });
         },
         updateRequest(payload, requestID) {
-          const path = `http://localhost:5000/posts/${requestID}`;
+          const path = `https://0.0.0.0:443/posts/${requestID}`;
           axios.put(path, payload)
             .then(() => {
               this.getRequests();
@@ -391,7 +391,7 @@ const APP = new Vue({
           this.getRequests(); // why?
         },
         removeRequest(requestID) {
-          const path = `http://localhost:5000/posts/${requestID}`;
+          const path = `https://0.0.0.0:443/posts/${requestID}`;
           axios.delete(path)
             .then((res) => {
               this.getRequests();
