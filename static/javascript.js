@@ -136,7 +136,7 @@ const APP = new Vue({
           this.currentSort = s;
         },
         ping() {
-            const path = 'https://0.0.0.0:443/ping';
+            const path = 'https://community-help.mgh.harvard.edu/ping';
             axios.get(path)
               .then((res) => {
                 this.posts = res.data.posts;
@@ -148,7 +148,7 @@ const APP = new Vue({
               });
         },
         getRequests() {
-          const path = 'https://0.0.0.0:443/posts';
+          const path = 'https://community-help.mgh.harvard.edu/posts';
           axios.get(path)
             .then((res) => {
               this.posts = res.data.posts;
@@ -162,7 +162,7 @@ const APP = new Vue({
             });
         },
         addRequest(payload) { // actually posts data to db
-          const path = 'https://0.0.0.0:443/posts';
+          const path = 'https://community-help.mgh.harvard.edu/posts';
           axios.post(path, payload)
             .then((res) => {
               this.getRequests();
@@ -174,7 +174,7 @@ const APP = new Vue({
             });
         },
         updateRequest(payload, requestID) {
-          const path = `https://0.0.0.0:443/posts/${requestID}`;
+          const path = `https://community-help.mgh.harvard.edu/posts/${requestID}`;
           axios.put(path, payload)
             .then(() => {
               this.getRequests();
@@ -391,7 +391,7 @@ const APP = new Vue({
           this.getRequests(); // why?
         },
         removeRequest(requestID) {
-          const path = `https://0.0.0.0:443/posts/${requestID}`;
+          const path = `https://community-help.mgh.harvard.edu/posts/${requestID}`;
           axios.delete(path)
             .then((res) => {
               this.getRequests();

@@ -115,8 +115,22 @@
                 <td>{% raw %} {{ post['email'] }} {% endraw %}</td>
                 <td>{% raw %} {{ post['address'] }} {% endraw %}</td>
                 <td>{% raw %} {{ post['post'] }} {% endraw %}</td>
-                <td>{% raw %} {{ post['requestType'] }} {% endraw %}</td>
-                <td>{% raw %} {{ post['helpType'] }} {% endraw %}</td>
+                
+                <!-- requestType -->
+                <td>
+                    {% raw %} {{ post['requestType'] == 'inHouseHelp' ? 'House Help':'' }} {% endraw %}
+                    {% raw %} {{ post['requestType'] == 'transportation' ? 'Transportation':'' }} {% endraw %}
+                    {% raw %} {{ post['requestType'] == 'petCare' ? 'Pet Care':'' }} {% endraw %}
+                    {% raw %} {{ post['requestType'] == 'shopping' ? 'Shopping':'' }} {% endraw %}
+                </td>
+                <!-- requestType -->
+                
+                <!-- requestType -->
+                <td>
+                    {% raw %} {{ post['helpType'] == 'canHelp' ? 'Can Help':'' }} {% endraw %}
+                    {% raw %} {{ post['helpType'] == 'needHelp' ? 'Need Help':'' }} {% endraw %}
+                </td>
+                <!-- requestType -->
                 <td>
                     <button type="button" 
                             class="btn btn-primary dropdown-item" 
@@ -255,6 +269,10 @@
                             </div> -->
 
                             <button type="submit" class="btn btn-primary">Submit</button>
+                            <hr>
+                            <div class="alert alert-success" role="alert">
+                                <strong>Please hit refresh to see your pin show up</strong>
+                            </div>
                         </form>
                     </div>
                     <div class="modal-footer">

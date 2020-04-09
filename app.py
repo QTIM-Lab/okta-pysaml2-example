@@ -58,9 +58,9 @@ context.load_cert_chain('community-help.mgh.harvard.edu.pem.crt', keyfile='commu
 #   On a production system, this information should be stored as approprate
 #   for your concept of "customer company", "group", "organization", or "team"
 metadata_url_for = {
-    'example-okta-com': 'https://dev-942176.okta.com/app/exk50kb6gWzX9CStj4x6/sso/saml/metadata'
+    # 'example-okta-com': 'https://dev-942176.okta.com/app/exk50kb6gWzX9CStj4x6/sso/saml/metadata'
     # 'partners-mgh-okta-com': 'https://partnershealthcare.okta.com/app/partnershealthcare_communityhelpmgh_1/exk3f7lgfdSGdSsXE297/sso/saml'
-    # 'partners-mgh-okta-com':'https://partnershealthcare.okta.com/app/exk3f7lgfdSGdSsXE297/sso/saml/metadata'
+    'partners-mgh-okta-com':'https://partnershealthcare.okta.com/app/exk3f7lgfdSGdSsXE297/sso/saml/metadata'
     # For testing with http://saml.oktadev.com use the following:
     # 'test': 'http://idp.oktadev.com/metadata',
     # WARNING WARNING WARNING
@@ -321,11 +321,11 @@ def idp_initiated(idp_name):
     # isn't in the user store, we create that user first, then log them in
 
     # Original Code
-    if username not in user_store:
-        user_store[username] = {
-            'first_name': authn_response.ava['FirstName'][0],
-            'last_name': authn_response.ava['LastName'][0],
-            }
+    # if username not in user_store:
+    #     user_store[username] = {
+    #         'first_name': authn_response.ava['FirstName'][0],
+    #         'last_name': authn_response.ava['LastName'][0],
+    #         }
     user = User_SAML(username)
 
     # New sqlite Code
@@ -554,4 +554,4 @@ if __name__ == "__main__":
     port = int(os.environ.get('PORT', 443))
     if port == 5000:
         app.debug = True
-    app.run(host='0.0.0.0', port=port, ssl_context=context) #("community-help.mgh.harvard.edu.key","community-help.mgh.harvard.edu.crt"))
+    app.run(host='0.0.0.0', port=port, ssl_context=context)
