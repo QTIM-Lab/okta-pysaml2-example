@@ -47,7 +47,6 @@ import requests
 # from OpenSSL import SSL
 import ssl
 context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-
 context.load_cert_chain('community-help.mgh.harvard.edu.pem.crt', keyfile='community-help.mgh.harvard.edu.pem.key')
 
 

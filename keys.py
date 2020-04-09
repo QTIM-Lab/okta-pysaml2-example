@@ -1,7 +1,7 @@
 import OpenSSL, tempfile
 
 # ----- SCRIPT 1 -----
-def pfx_to_pem(pfx_path='community-help.mgh.harvard.edu.pfx', pfx_password='v74DYzrZKfD3j924'):
+def pfx_to_pem(pfx_path='.pfx', pfx_password=''):
     ''' Decrypts the .pfx file to be used with requests. '''
     pfx = open(pfx_path, 'rb').read()
     p12 = OpenSSL.crypto.load_pkcs12(pfx, pfx_password)
