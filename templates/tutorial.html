@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container">
+    <div class="row">
+        <div class=col-sm-1></div>
+        <div class=col-sm-10>
+            <h1>Tutorial Page</h1>
+
+            <ul>
+                <li class="greeting">Begin by reading the Community Intro and Disclaimer on the <a href="{{ url_for('main_page') }}">home page</a></li>
+                <li class="greeting">The actions supported in this app are:
+                    <ul>
+                        <li class="greeting">Add a Post</li>
+                        <li class="greeting">Update a Post to either "Resolved" or "I dont need help anymore"</li>
+                        <li class="greeting">Click and see your post along with others in the MGH\Brigham Community</li>
+                        <li class="greeting">Sort the results in the table of posts</li>
+                        <li class="greeting">Search posts for key words or phrases to help you find help or fins someone to help</li>
+                    </ul>
+                </li>
+                <li class="greeting">Remember to hit refresh to see your pin show up on the map</li>
+                <li class="greeting">You will not be able to retrieve a post if you mark it as "Resolved" or "I dont need help anymore"</li>
+                <li class="greeting">There are 4 types of help available:
+                    <ul>
+                        <li class="greeting">Pet Care</li>
+                        <li class="greeting">In House Care</li>
+                        <li class="greeting">Transportation Help</li>
+                        <li class="greeting">Shopping Help</li>
+                    </ul>
+                </li>
+                <li>If you choose to "help" vs receive help then your icon shows up as a red heart</li>
+            </ul>
+
+
+        </div>
+        <div class=col-sm-1></div>
+    </div>
+</div>
+
+
+{% endblock %}

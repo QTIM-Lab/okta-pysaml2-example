@@ -1,5 +1,5 @@
 {% extends "bootstrap/base.html" %}
-{% set application_name = 'MGH Community Help' %}
+{% set application_name = 'Mass General Brigham Community Help' %}
 {% block title %}{{ application_name }}{% endblock %}
 
 {% block metas %}<meta name="viewport" content="width=device-width, initial-scale=1.0">{% endblock %}
@@ -28,15 +28,15 @@
           <ul class="nav navbar-nav">
       {% if current_user.is_authenticated %}
           <li><a href="{{ url_for('logout') }}">Logout</a></li>      
-          <li><a href="../static/New_Resources.pdf">Link To Additional Resources</a></li>
+          <li><a href="../static/New_Resources.pdf">Link To Child Care Resources</a></li>
       {% else %}
           {% for idp in idp_dict.keys() %}
           <li><a href="/saml/login/{{idp}}">Login</a></li>
           {% endfor %}     
-          <li><a href="../static/New_Resources.pdf">Link To Additional Resources</a></li>
+          <li><a href="../static/New_Resources.pdf">Link To Child Care Resources</a></li>
       {% endif %}
-      
           </ul>
+          <span class="navbar-text" style="float:right;"><a href="{{ url_for('tutorial') }}">Tutorial</a></span>
         </div><!--/.nav-collapse -->
       </div>
     </nav>

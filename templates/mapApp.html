@@ -185,8 +185,9 @@
                                 <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
                             </div>
                             <div class="form-group">
-                                <label for="addPostAddress">Zip Code</label>
+                                <label for="addPostAddress">Address</label>
                                 <input v-model="addPostForm.address" type="address" class="form-control" id="addPostAddress" placeholder="address">
+                                <small id="emailHelp" class="form-text text-muted">Remember to increase safety, don't use the street number in your address.</small>
                             </div>
                             <div class="form-group">
                                 <label for="addPostPost">Post</label>
@@ -277,7 +278,7 @@
                     <div class="modal-body">
                     
                         <form @submit="onSubmitUpdate">
-                            <div class="form-group">
+                            <!-- <div class="form-group">
                                 <label for="editPostName">Name</label>
                                 <input v-model="editPostForm.name" type="text" class="form-control" id="editPostName" placeholder="Name">
                             </div>
@@ -337,7 +338,7 @@
                                     Pet Sitting\Care
                                     </label>
                                 </div>
-                            </div>
+                            </div> -->
 
                             <div class="form-group">
                                 <label for="">Post Status?</label>

@@ -537,6 +537,13 @@ def single_post(post_id):
         response_object['message'] = 'Request neither DELETE nor PUT...'
     return jsonify(response_object)
 
+# Delete\Update api handler
+@app.route('/tutorial', methods=['GET'])
+def tutorial():
+    return render_template('tutorial.html', idp_dict=metadata_url_for)
+
+
+
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
     if port == 5000:
