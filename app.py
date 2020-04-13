@@ -283,7 +283,7 @@ def load_user(user_id):
 @app.before_request
 def make_session_permanent():
     session.permanent = True
-    app.permanent_session_lifetime = dt.timedelta(seconds=5)
+    app.permanent_session_lifetime = dt.timedelta(seconds=300)
 
 # - Views - #
 # SAML Code
@@ -291,6 +291,10 @@ def make_session_permanent():
 @app.route("/")
 def main_page():
     return render_template('main_page.html', idp_dict=metadata_url_for, session=session)
+
+@app.route("/disclaimer")
+def disclaimer():
+    return render_template('disclaimer.html', idp_dict=metadata_url_for)
 
 
 @app.route("/saml/sso/<idp_name>", methods=['POST'])
@@ -563,5 +567,5 @@ if __name__ == "__main__":
     port = int(os.environ.get('PORT', 443))
     if port == 5000:
         app.debug = True
-    # app.run(host='0.0.0.0', port=port, ssl_context='adhoc')
-    app.run(host='0.0.0.0', port=port, ssl_context=context)
+    app.run(host='0.0.0.0', port=port, ssl_context='adhoc')
+    # app.run(host='0.0.0.0', port=port, ssl_context=context)

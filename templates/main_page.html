@@ -4,8 +4,9 @@
 {% if current_user.is_authenticated %}
   <!-- <div class=container> -->
     <div class=row>
-      <div class=col-md-1></div>
-      <div class=col-md-10>
+      <div class="col-md-1 notmobile"></div>
+      <div id=map_container_div class=col-md-10>
+          <br>
           <h1>Welcome {{ session['saml_attributes']['firstName'][0] + ' ' + session['saml_attributes']['lastName'][0] }}</h1>
           <p class="lead">
             Below are posts for help or posts offering help from members of the MGH community:
@@ -13,7 +14,7 @@
           <hr>
           {% include 'mapApp.html' %}
       </div>
-      <div class=col-md-1></div>
+      <div class="col-md-1 notmobile"></div>
     </div>
 {% else %}
   <br><br><br>

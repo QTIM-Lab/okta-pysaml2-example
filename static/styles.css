@@ -20,6 +20,10 @@
     font-size: 20px;
 }
 
+.addPostButton {
+    width:150px;
+}
+
 /* --- Table Styles --- */
 
 /* Search Bar */
@@ -60,3 +64,11 @@
     border-top: 5px solid black;
 }
 
+/* mobile view for table */
+
+
+@media only screen and (max-width: 900px) {
+    .notmobile{
+        display: none;
+    }
+}

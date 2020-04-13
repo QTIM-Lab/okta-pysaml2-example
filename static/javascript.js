@@ -1,3 +1,23 @@
+// Switch the class of map div for mobile
+
+function resize_map_container() {
+  if($('body').width() < 300){
+    $('#table').css('font-size','50%')
+  } else if($('body').width() < 450){
+    $('#table').css('font-size','75%')
+  }else if($('body').width() > 450){
+    $('#table').css('font-size','100%')
+  }
+}
+
+window.addEventListener('resize', resize_map_container);
+
+if($('body').width() < 450){
+  resize_map_container(type='smaller')
+}else if($('body').width() > 450 && $('body').width() < 768){
+  resize_map_container(type='larger')
+}
+
 // Enter Vuejs
 // when page loads run all of this code
 document.addEventListener('DOMContentLoaded', () => {
@@ -6,7 +26,7 @@ const APP = new Vue({
     el: '#app',
     // define data - initial display text
     data: {
-        host: 'community-help.mgh.harvard.edu', //'localhost'
+        host: 'localhost',//'community-help.mgh.harvard.edu',
         iconMap: {
             transportation: 'img/transportation.png',
             inHouseHelp: 'img/inHouseHelp.png',
