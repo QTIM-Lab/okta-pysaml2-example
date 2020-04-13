@@ -41,9 +41,9 @@
                 <col width="100">
                 <col width="200">
                 <col width="150">
-                <col width="400">
-                <col width="100">
-                <col width="100">
+                <col width="300">
+                <col width="150">
+                <col width="50">
             <tr>
                 <th @click="sort('date')" class="th-sm notmobile" style="inline-block">Date
                     <div class=inline> <!-- These are the arrows -->
@@ -101,7 +101,7 @@
                         <div class="arrow-down"></div>
                     </div>
                 </th>
-                <th class="th-sm">Edit Post</th>
+                <th class="th-sm">Edit</th>
                 <!-- <th class="th-sm">Delete Post</th> -->
             </tr>
             </thead>
@@ -133,11 +133,11 @@
                 <!-- requestType -->
                 <td>
                     <button type="button" 
-                            class="btn btn-primary dropdown-item" 
+                            class="btn btn-primary btn-xs dropdown-item" 
                             data-toggle="modal" 
                             data-target="#editPostModal"
                             @click="editPost(post)">
-                            Update
+                            Edit
                     </button>
                 </td>
                 <!-- <td>
@@ -162,7 +162,7 @@
                 <th class="th-sm">Post</th>
                 <th class="th-sm notmobile">Request Type</th>
                 <th class="th-sm notmobile">Help Type</th>
-                <th class="th-sm">Edit Post</th>
+                <th class="th-sm">Edit</th>
                 <!-- <th class="th-sm">Delete Post</th> -->
             </tr>
             </tfoot>

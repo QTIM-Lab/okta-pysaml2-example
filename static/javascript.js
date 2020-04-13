@@ -406,32 +406,9 @@ const APP = new Vue({
           }
         },    },
 
-
-
-   
-
-
-
-
-
-
 })
 
-
-
-
-
-
-
-
-
-
-
-
 // End of "DOMContentLoaded" eventListener
-
-
-
 
 })
 

@@ -20,7 +20,7 @@
     font-size: 20px;
 }
 
-.addPostButton {
+.someFixedWidths {
     width:150px;
 }
 
@@ -35,7 +35,7 @@
 
 /* Arrows for sorting on table */
 .inline {
-    display: inline-block;
+    /* display: inline-block; */
     float: right;
 }
 
@@ -66,9 +66,24 @@
 
 /* mobile view for table */
 
+@media only screen and (min-width: 800px) {
+    .showInMobile{
+        display: none;
+    }
+}
 
-@media only screen and (max-width: 900px) {
+@media only screen and (max-width: 800px) {
     .notmobile{
         display: none;
+    }
+
+    .showInMobile{
+        font-size: smaller;
+    }
+}
+
+@media only screen and (min-width: 450px) {
+    .showInMobile{
+        font-size: 1.2em;
     }
 }
