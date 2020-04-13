@@ -6,7 +6,7 @@
     <div class=row>
       <div class=col-md-1></div>
       <div class=col-md-10>
-          <h1>Welcome {{ session.user }}</h1>
+          <h1>Welcome {{ session['saml_attributes']['firstName'][0] + ' ' + session['saml_attributes']['lastName'][0] }}</h1>
           <p class="lead">
             Below are posts for help or posts offering help from members of the MGH community:
           </p>

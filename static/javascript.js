@@ -1,29 +1,3 @@
-
-// $(document).ready(function() {
-//   $('#example').DataTable();
-// });
-
-
-// initMap()
-// function initMap() {
-    
-//   setTimeout(() => {
-//     console.log(document.getElementById('map'))
-//     // The location of boston
-//     var boston = {lat: 42.3601, lng: -71.0589};
-//     // The map, centered at boston
-//     var map = new google.maps.Map(
-//         document.getElementById('map'), {zoom: 11, center: boston});
-    
-//     // The marker, positioned at boston
-//     // var marker = new google.maps.Marker({position: boston, map: map});
-//     $("#map").css('height', '400px')
-
-//   }, 100)
-  
-// }
-
-
 // Enter Vuejs
 // when page loads run all of this code
 document.addEventListener('DOMContentLoaded', () => {
@@ -32,6 +6,7 @@ const APP = new Vue({
     el: '#app',
     // define data - initial display text
     data: {
+        host: 'community-help.mgh.harvard.edu', //'localhost'
         iconMap: {
             transportation: 'img/transportation.png',
             inHouseHelp: 'img/inHouseHelp.png',
@@ -136,7 +111,7 @@ const APP = new Vue({
           this.currentSort = s;
         },
         ping() {
-            const path = 'https://community-help.mgh.harvard.edu/ping';
+            const path = `https://${this.host}/ping`;
             axios.get(path)
               .then((res) => {
                 this.posts = res.data.posts;
@@ -148,7 +123,7 @@ const APP = new Vue({
               });
         },
         getRequests() {
-          const path = 'https://community-help.mgh.harvard.edu/posts';
+          const path = `https://${this.host}/posts`;
           axios.get(path)
             .then((res) => {
               this.posts = res.data.posts;
@@ -162,7 +137,7 @@ const APP = new Vue({
             });
         },
         addRequest(payload) { // actually posts data to db
-          const path = 'https://community-help.mgh.harvard.edu/posts';
+          const path = `https://${this.host}/posts`;
           axios.post(path, payload)
             .then((res) => {
               this.getRequests();
@@ -174,7 +149,7 @@ const APP = new Vue({
             });
         },
         updateRequest(payload, requestID) {
-          const path = `https://community-help.mgh.harvard.edu/posts/${requestID}`;
+          const path = `https://${this.host}/posts/${requestID}`;
           axios.put(path, payload)
             .then(() => {
               this.getRequests();
@@ -391,7 +366,7 @@ const APP = new Vue({
           this.getRequests(); // why?
         },
         removeRequest(requestID) {
-          const path = `https://community-help.mgh.harvard.edu/posts/${requestID}`;
+          const path = `https://${this.host}/posts/${requestID}`;
           axios.delete(path)
             .then((res) => {
               this.getRequests();

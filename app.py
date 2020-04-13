@@ -47,7 +47,7 @@ import requests
 # from OpenSSL import SSL
 import ssl
 context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-context.load_cert_chain('community-help.mgh.harvard.edu.pem.crt', keyfile='community-help.mgh.harvard.edu.pem.key')
+# context.load_cert_chain('community-help.mgh.harvard.edu.pem.crt', keyfile='community-help.mgh.harvard.edu.pem.key')
 
 
 # metadata_url_for contains PER APPLICATION configuration settings.
@@ -58,9 +58,9 @@ context.load_cert_chain('community-help.mgh.harvard.edu.pem.crt', keyfile='commu
 #   On a production system, this information should be stored as approprate
 #   for your concept of "customer company", "group", "organization", or "team"
 metadata_url_for = {
-    # 'example-okta-com': 'https://dev-942176.okta.com/app/exk50kb6gWzX9CStj4x6/sso/saml/metadata'
+    'example-okta-com': 'https://dev-942176.okta.com/app/exk50kb6gWzX9CStj4x6/sso/saml/metadata'
     # 'partners-mgh-okta-com': 'https://partnershealthcare.okta.com/app/partnershealthcare_communityhelpmgh_1/exk3f7lgfdSGdSsXE297/sso/saml'
-    'partners-mgh-okta-com':'https://partnershealthcare.okta.com/app/exk3f7lgfdSGdSsXE297/sso/saml/metadata'
+    # 'partners-mgh-okta-com':'https://partnershealthcare.okta.com/app/exk3f7lgfdSGdSsXE297/sso/saml/metadata'
     # For testing with http://saml.oktadev.com use the following:
     # 'test': 'http://idp.oktadev.com/metadata',
     # WARNING WARNING WARNING
@@ -78,10 +78,6 @@ app.secret_key = str(uuid.uuid4())  # Replace with your secret key
 login_manager = LoginManager()
 login_manager.setup_app(app)
 logging.basicConfig(level=logging.DEBUG)
-# NOTE:
-#   This is implemented as a dictionary for DEMONSTRATION PURPOSES ONLY.
-#   On a production system, this information must come
-#   from your system's user store.
 
 
 # from flask_migrate import Migrate
@@ -237,6 +233,7 @@ def saml_client_for(idp_name=None):
             },
         'service': {
             'sp': {
+                "force_authn": True,
                 'endpoints': {
                     'assertion_consumer_service': [
                         (acs_url, BINDING_HTTP_REDIRECT),
@@ -282,6 +279,11 @@ class User_SAML(UserMixin):
 @login_manager.user_loader
 def load_user(user_id):
     return User_SAML(user_id)
+
+@app.before_request
+def make_session_permanent():
+    session.permanent = True
+    app.permanent_session_lifetime = dt.timedelta(seconds=5)
 
 # - Views - #
 # SAML Code
@@ -337,6 +339,11 @@ def idp_initiated(idp_name):
     # which is aliased as "username" above and is actually "authn_response.get_subject().text" \
     # and not "saml_attributes" which also came from the same response "authn_response.ava "
     session['saml_attributes'] = authn_response.ava
+
+    session['saml_attributes']['firstName'] = session['saml_attributes'].pop('FirstName') if 'FirstName' in session['saml_attributes'].keys() else session['saml_attributes']['firstName']
+    session['saml_attributes']['lastName'] = session['saml_attributes'].pop('LastName') if 'LastName' in session['saml_attributes'].keys() else session['saml_attributes']['lastName']
+
+
     login_user(user)
     url = url_for('user') # not getting used
 
@@ -439,7 +446,9 @@ def all_requests(app=app, User=User, Post=Post):
             new_user = User(
                 name=post_data.get('name'), 
                 partnersID=session['user'], 
-                email=post_data.get('email'), # User defined
+                # email=post_data.get('email'), # User defined
+                email=session['saml_attributes']['email'][0], # SAML defined
+                
             )
             db.session.add(new_user)
             db.session.commit()
@@ -554,4 +563,5 @@ if __name__ == "__main__":
     port = int(os.environ.get('PORT', 443))
     if port == 5000:
         app.debug = True
+    # app.run(host='0.0.0.0', port=port, ssl_context='adhoc')
     app.run(host='0.0.0.0', port=port, ssl_context=context)
