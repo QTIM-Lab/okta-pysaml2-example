@@ -30,6 +30,7 @@ class User(db.Model, UserMixin): #UserMixin, when ready
     
     # Relatoinships
     post = db.relationship('Post', backref='user', cascade="all, delete-orphan" , lazy='dynamic')
+    review = db.relationship('Review', backref='user', cascade="all, delete-orphan" , lazy='dynamic')
 
     def __repr__(self):
         return '<User: %r>' % self.name
@@ -37,10 +38,10 @@ class User(db.Model, UserMixin): #UserMixin, when ready
     def serialize(self):
        """Return object data in easily serializable format"""
        return {
-           'id' : self.id,
-           'name': self.name,
-           'partnersID': self.partnersID,
-           'email': self.email,
+           'id' : self.id, # native property
+           'name': self.name, # native property
+           'partnersID': self.partnersID, # native property
+           'email': self.email, # native property
        }
 
 
@@ -59,7 +60,7 @@ class Post(db.Model):
     status = db.Column(db.String(64))
 
     def __repr__(self):
-        return '<Post: %r>' % self.userId
+        return '<Post: %r>' % self.id
 
     def serialize(self):
        """Return object data in easily serializable format"""
@@ -70,11 +71,34 @@ class Post(db.Model):
            'partnersID': User.query.filter_by(id=self.userId).first().partnersID,
            'email': User.query.filter_by(id=self.userId).first().email,
            'address': self.address,
-           'lat': self.lat,
-           'lng': self.lng,
+           'lat': self.lat, # native property
+           'lng': self.lng, # native property
            'date': self.date, # self.date.strftime('%x'), # If you want to format it going in. Currently letting JS handle formatting
            'post': self.post, # native property
            'requestType': self.requestType, # native property
            'helpType': self.helpType, # native property
            'status': self.status, # native property
+       }
+
+
+class Review(db.Model):
+    __tablename__ = 'reviews'
+    # Columns
+    id = db.Column(db.Integer, primary_key=True)
+    userId = db.Column(db.Integer, db.ForeignKey('users.id'))
+    review = db.Column(db.Text())
+    date=db.Column(db.DateTime())
+    
+    
+    def __repr__(self):
+        return '<Review: %r>' % self.id
+
+    def serialize(self):
+       """Return object data in easily serializable format"""
+       return {
+           'id' : self.id, # native property
+           'userId': self.userId, # native property
+           'name': User.query.filter_by(id=self.userId).first().name,
+           'review': self.review, # native property
+           'date': self.date, # self.date.strftime('%x'), # If you want to format it going in. Currently letting JS handle formatting
        }

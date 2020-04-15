@@ -6,7 +6,7 @@
     <div class=row>
       <div class="col-md-1 notmobile"></div>
       <div id=map_container_div class=col-md-10>
-          <br>
+          <br><br>
           <h1>Welcome {{ session['saml_attributes']['firstName'][0] + ' ' + session['saml_attributes']['lastName'][0] }}</h1>
           <p class="lead">
             Below are posts for help or posts offering help from members of the MGH community:
@@ -18,31 +18,32 @@
     </div>
 {% else %}
   <br><br><br>
-  <div class=col-sm-3></div>
-  <div class=col-sm-6>
+  <div class=col-sm-1></div>
+  <div class=col-sm-10>
     <div class="hero-unit">
       <h1>Mass General Brigham Community Help</h1>
       <hr>
       <h2>Purpose:</h2>
-      <p class="greeting">Mass General Brigham Community Help was created to connect Mass General Brigham direct care providers with other employees who may be able to help them with unmet needs due to busy patient care and hospital operations schedules. Employees who may be working from home and/or have time due to workflow changes can volunteer to assist their colleagues with these personal needs. Mass General Brigham Community Help is only available to individuals within the Partners system. A Partners email address is required to set up an account.</p>  
-      <h2>Community Standards</h2>
-      <p class="greeting">All requests for services or offers to provide services should follow the same standards of professionalism and civility as we do in our workplace.</p>
-      <p class="greeting">Mass General Brigham Community Help cannot be used:</p>
+      <p class="greeting">Mass General Brigham Community Help site helps connect colleagues during this extraordinary time. Whether you need assistance or are looking to help a colleague, please read on!</p>  
+      <h2>Overview</h2>
+      <p class="greeting">To get started, simply click the Login button below. You will automatically be logged in via single sign on.</p>
+      <p class="greeting"><strong>If you need help or would like to volunteer</strong>: Please review existing posts. If you find a match for a service you need or one that you would like to offer, please email that person directly.</p>
+      <p class="greeting">If you do NOT see a post matching the help you need or are willing to provide, click the green "Post a New Request" for one of the following types of services:</p>
       <ol>
-        <li class="greeting">To arrange child care. If you are in need of child care resources, click <a href="../static/New_Resources.pdf">here</a>.</li>
-        <li class="greeting">To arrange for hospital shift coverage.</li>
+        <li class="greeting">Transportation</li>
+        <li class="greeting">Shopping</li>
+        <li class="greeting">In-House Help</li>
+        <li class="greeting">Pet Sitting/Care</li>
       </ol>
-      <p class="greeting">By setting up an account on Mass General Brigham Community Help you agree that:</p>
-      <ol>
-        <li class="greeting">Use of Mass General Brigham Community Help is voluntary.</li>
-        <li class="greeting">Any information with a service requestor or service provider is completely voluntary and sharing of personal information (e.g., home address) should only be done after careful considerations of risks.</li>
-        <li class="greeting">You have read the Community Standards and will adhere to the same standards on Mass General Brigham Community Help as in our workplace.</li>
-      </ol>
+
+      <p class=greeting>Please note: This site is not the place to request coverage of a hospital shift or to arrange for child care. If you need child care support, please click <a href="https://partnershealthcarehr.service-now.com/hrportal?id=ph_kb_article&sys_id=c113fa84db2bc0d02c243ebd7c961953&kb_category=2f1ef3a8dbd00340da8538ff9d96191d#child" target="_blank">here</a>.</p>
+
+      <h2>Please Read</h2>
+      <p class="greeting">Partners HealthCare is making this site available to employees, but it is not actively monitoring the requests and responses posted. By using this service, you assume all risk and responsibility. Partners is not responsible for the conduct of individuals that choose to participate and receive and/or offer services through Partners HealthCare Community Help. However, if you post inappropriate or illegal requests for services or otherwise communicate in a manner inconsistent with Partners and our organizations standards of professionalism and civility, you may be referred to Human Resources for appropriate action.</p>
       <h2>Disclaimer:</h2>
       <div class="alert alert-warning greeting" role="alert">
         <strong>To effectively match employee needs with offers of help, this tool requires the user to identify their location by including street of residence. It does not request you disclose your house or apartment number for privacy reasons. By establishing an account you are acknowledging your agreement to share your street location to other members of the Partners community using this tool.</strong>
       </div>
-      <p class="greeting">Partners is making Mass General Brigham Community Help available to employees, but it is not actively moderating the tool and/or requests and responses posted. By choosing to use Mass General Brigham Community Help, you assume all risk and you are responsible for acting in accordance with the stated Purpose and Community Standards. Partners is not responsible for the conduct of individuals that choose to participate and receive and/or offer services through Mass General Brigham Community Help. That being said, if you post about inappropriate or illegal activity requests for services or otherwise communicate in a manner inconsistent with Partners and our organizations standards of professionalism and civility, you may be referred to Human Resources for appropriate action.</p>
       <hr>
       <p>
         {% for idp in idp_dict.keys() %}
@@ -51,7 +52,7 @@
       </p>
     </div>
   </div>
-  <div class=col-sm-3></div>
+  <div class=col-sm-1></div>
   
 
 

@@ -39,11 +39,26 @@ const APP = new Vue({
         lng: 0, // double check we need these...might already be in posts
         mgh_map: null,
         posts: [],
-        currentSort: 'date', // for table
-        currentSortDir: 'desc', // for table
-        pageSize: 10, // for table
-        currentPage: 1, // for table
-        searchQuery: null, // for table
+        reviews: [
+          {date: '01-01-2020',
+           name: 'Ben',
+           review: 'Cloud has been super helpful this quaratine'
+          }
+        ],
+        postTable: {
+          currentSort: 'date', // for post table
+          currentSortDir: 'desc', // for post table
+          pageSize: 10, // for post table
+          currentPage: 1, // for post table
+          searchQuery: null, // for post table
+        },
+        reviewTable: {
+          currentSort: 'date', // for review table
+          currentSortDir: 'desc', // for review table
+          pageSize: 5, // for review table
+          currentPage: 1, // for review table
+          searchQuery: null, // for review table
+        },
         markers: [],
         icons: [],
         message: {
@@ -70,10 +85,14 @@ const APP = new Vue({
           helpType: false,
           status: '',
         },
+        addReviewForm: {
+          review: '',
+        },
 
     },
     created() {
-      this.getRequests()
+      this.getRequests();
+      this.getReviews();
     },
     mounted() {
         function initMap(callback) {
@@ -93,42 +112,78 @@ const APP = new Vue({
     },
     computed: {
       sortedPosts:function() {
-        return this.posts.filter((post, index) => {
-          if (this.searchQuery) {
-            return this.searchQuery.toLowerCase().split(' ').every(v => post.post.toLowerCase().includes(v))
+        return this.posts.filter((post, index) => { // first we bake in the search
+          if (this.postTable.searchQuery) {
+            return this.postTable.searchQuery.toLowerCase().split(' ').every(v => post.post.toLowerCase().includes(v))
           } else {
             return true
           }
-        }).sort((a,b) => {
+        }).sort((a,b) => { //now the sort
           let modifier = 1;
-          if(this.currentSortDir === 'desc') modifier = -1;
-          if (this.currentSort === 'date') {
-            if(Date.parse(a[this.currentSort]) < Date.parse(b[this.currentSort])) return -1 * modifier;
-            if(Date.parse(a[this.currentSort]) > Date.parse(b[this.currentSort])) return 1 * modifier;            
+          if(this.postTable.currentSortDir === 'desc') modifier = -1;
+          if (this.postTable.currentSort === 'date') {
+            if(Date.parse(a[this.postTable.currentSort]) < Date.parse(b[this.postTable.currentSort])) return -1 * modifier;
+            if(Date.parse(a[this.postTable.currentSort]) > Date.parse(b[this.postTable.currentSort])) return 1 * modifier;            
           } 
-          if(a[this.currentSort] < b[this.currentSort]) return -1 * modifier;
-          if(a[this.currentSort] > b[this.currentSort]) return 1 * modifier;
+          if(a[this.postTable.currentSort] < b[this.postTable.currentSort]) return -1 * modifier;
+          if(a[this.postTable.currentSort] > b[this.postTable.currentSort]) return 1 * modifier;
           return 0;
         }).filter((row, index) => {
-          let start = (this.currentPage-1)*this.pageSize;
-          let end = this.currentPage*this.pageSize;
+          let start = (this.postTable.currentPage-1)*this.postTable.pageSize;
+          let end = this.postTable.currentPage*this.postTable.pageSize;
+          if(index >= start && index < end) return true;
+        });
+      },
+      sortedReviews:function() {
+        return this.reviews.filter((review, index) => { // first we bake in the search
+          if (this.reviewTable.searchQuery) {
+            return this.reviewTable.searchQuery.toLowerCase().split(' ').every(v => review.review.toLowerCase().includes(v))
+          } else {
+            return true
+          }
+        }).sort((a,b) => { //now the sort
+          let modifier = 1;
+          if(this.reviewTable.currentSortDir === 'desc') modifier = -1;
+          if (this.reviewTable.currentSort === 'date') {
+            if(Date.parse(a[this.reviewTable.currentSort]) < Date.parse(b[this.reviewTable.currentSort])) return -1 * modifier;
+            if(Date.parse(a[this.reviewTable.currentSort]) > Date.parse(b[this.reviewTable.currentSort])) return 1 * modifier;            
+          } 
+          if(a[this.reviewTable.currentSort] < b[this.reviewTable.currentSort]) return -1 * modifier;
+          if(a[this.reviewTable.currentSort] > b[this.reviewTable.currentSort]) return 1 * modifier;
+          return 0;
+        }).filter((row, index) => {
+          let start = (this.reviewTable.currentPage-1)*this.reviewTable.pageSize;
+          let end = this.reviewTable.currentPage*this.reviewTable.pageSize;
           if(index >= start && index < end) return true;
         });
       }
     },
     methods: {
         nextPage:function() {
-          if((this.currentPage*this.pageSize) < this.posts.length) this.currentPage++;
+          if((this.postTable.currentPage*this.postTable.pageSize) < this.posts.length) this.postTable.currentPage++;
         },
         prevPage:function() {
-          if(this.currentPage > 1) this.currentPage--;
+          if(this.postTable.currentPage > 1) this.postTable.currentPage--;
         },
-        sort(s) {
+        nextReviewPage:function() {
+          if((this.reviewTable.currentPage*this.reviewTable.pageSize) < this.posts.length) this.reviewTable.currentPage++;
+        },
+        prevReviewPage:function() {
+          if(this.reviewTable.currentPage > 1) this.reviewTable.currentPage--;
+        },
+        sort(s) { // For Post Table
           //if s == current sort, reverse
-          if(s === this.currentSort) {
-            this.currentSortDir = this.currentSortDir==='asc'?'desc':'asc';
+          if(s === this.postTable.currentSort) {
+            this.postTable.currentSortDir = this.postTable.currentSortDir==='asc'?'desc':'asc';
           }
-          this.currentSort = s;
+          this.postTable.currentSort = s;
+        },
+        sortReviews(s) {
+          //if s == current sort, reverse
+          if(s === this.reviewTable.currentSort) {
+            this.reviewTable.currentSortDir = this.reviewTable.currentSortDir==='asc'?'desc':'asc';
+          }
+          this.reviewTable.currentSort = s;
         },
         ping() {
             const path = `https://${this.host}/ping`;
@@ -160,6 +215,7 @@ const APP = new Vue({
           const path = `https://${this.host}/posts`;
           axios.post(path, payload)
             .then((res) => {
+              setTimeout(()=>{location.reload()}, 1000);
               this.getRequests();
               this.updateMessage(res.data.message, alert_type='success')
             })
@@ -168,10 +224,42 @@ const APP = new Vue({
               this.getRequests();
             });
         },
+
+        // reviews
+        getReviews() {
+          const path = `https://${this.host}/reviews`;
+          axios.get(path)
+            .then((res) => {
+              this.reviews = res.data.reviews;
+              this.username = res.data.username;
+              // console.log(this.username) //shows old posts still...I think we should user this.markers to to loop through the markers and remove off the map...new methode removeMarkers()
+              // setTimeout((() => {console.log(this.markers);this.updateMap(this.mg_map)}), 3000);
+            })
+            .catch((error) => {
+              // eslint-disable-next-line
+              // console.error(error);
+            });
+        },
+        addReview(payload) { // actually posts data to db
+          const path = `https://${this.host}/reviews`;
+          axios.post(path, payload)
+            .then((res) => {
+              setTimeout(()=>{location.reload()}, 1000);
+              this.getRequests();
+              this.updateMessage(res.data.message, alert_type='success')
+            })
+            .catch((error) => {              // eslint-disable-next-line
+              console.log(error);
+              this.getRequests();
+            });
+        },
+        // reviews
+
         updateRequest(payload, requestID) {
           const path = `https://${this.host}/posts/${requestID}`;
           axios.put(path, payload)
             .then(() => {
+              setTimeout(()=>{location.reload()}, 1000);
               this.getRequests();
               this.updateMessage('Request updated!', alert_type='success')
             }).catch((error) => {              // eslint-disable-next-line
@@ -195,12 +283,12 @@ const APP = new Vue({
           this.editPostForm.requestType = '';
           this.editPostForm.helpType = false;
           this.editPostForm.status = '';
+          this.addReviewForm.review = '';
         },
         updateMessage(message, alert_type) {
           this.message['message_success'] = "",
           this.message['message_danger'] = "",
           this.message['message_warning'] = "",
-
           this.message['message_'+alert_type] = message
         },
         geocodeAddress(request, callback) {
@@ -379,6 +467,17 @@ const APP = new Vue({
           // };
           // this.updateRequest(payload, this.editPostForm.id);
         },
+        onSubmitReview(evt) {
+          $('#addReviewModal').modal('toggle')
+          evt.preventDefault();
+          console.log($('#addReview'))
+          const payload = {
+            review: this.addReviewForm.review,
+          };
+          console.log(payload)
+          this.addReview(payload);
+          this.initForm();
+        },
         onResetUpdate(evt) {
           evt.preventDefault();
           this.$refs.editPostModal.hide();
@@ -412,3 +511,10 @@ const APP = new Vue({
 
 })
 
+
+
+// Notes: 
+// Good source for sorting and searching tables with pagination
+// https://www.raymondcamden.com/2018/02/08/building-table-sorting-and-pagination-in-vuejs
+
+// "Next Source"

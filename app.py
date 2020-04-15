@@ -80,20 +80,23 @@ login_manager.setup_app(app)
 logging.basicConfig(level=logging.DEBUG)
 
 
-# from flask_migrate import Migrate
+
 from flask_sqlalchemy import SQLAlchemy
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or 'sqlite:///' + os.path.join(basedir, 'posts.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
-from models import User, Post
+from models import User, Post, Review
+
+from flask_migrate import Migrate
+migrate = Migrate(app, db)
 # Below line is not being used but was part of an example 
 user_store = {'bbearce@gmail.com': {}} # {'FirstName':'Benjamin','LastName':'Bearce'}}
 
 
 # - Helper Functions - #
 
-def recreate_db(app=app, User=User, Post=Post):
+def recreate_db(app=app, User=User, Post=Post, Review=Review):
     db = app.db
     db.drop_all()
     db.create_all()
@@ -201,7 +204,12 @@ def recreate_db(app=app, User=User, Post=Post):
                  lat=42.3016305, 
                  lng=-71.067605)
 
-    db.session.add_all([user1,user2,post1,post2,post3,post4,post5,post6,post7,post8,post9,post10])
+    review1 = Review(userId=user1.id, 
+                 review="Cloud is being so amazing this quarantine.", 
+                 date=dt.datetime(2020, 3, 1),
+                 )
+
+    db.session.add_all([user1,user2,post1,post2,post3,post4,post5,post6,post7,post8,post9,post10,review1])
     db.session.commit()
 
 
@@ -478,6 +486,56 @@ def all_requests(app=app, User=User, Post=Post):
         response_object['posts'] = [post.serialize() for post in Post.query.filter_by(status='un-resolved')]
     return jsonify(response_object)
 
+
+
+@app.route('/reviews', methods=['GET', 'POST'])
+def all_reviews(app=app, User=User, Review=Review):
+    # response_object = {'status': 'success'}
+    try:
+        response_object = {'status': 'success', 
+                           'username':session['user']
+                          }
+    except:
+        response_object = {'status': 'failure'}
+
+    if request.method == 'POST':
+        review_data = request.get_json()
+        # Good print loop for seeing data you do\don't receive
+        for i in review_data:
+            print('{}: '.format(i),review_data.get(i))
+
+        # Check if user exists; They need to be a user before they can leave feedback.
+        if User.query.filter_by(partnersID=session['user']).first() != None:
+            user = User.query.filter_by(partnersID=session['user']).first()
+        
+            new_review = Review(
+                userId=user.id, 
+                review=review_data.get('review'), 
+                date=dt.datetime.now(),
+            )
+            db.session.add(new_review)
+            db.session.commit()
+
+            response_object['message'] = 'Review added for {}'.format(user.name)
+        else:
+            response_object['message'] = 'You need to have made at least 1 post before you can leave a review'
+
+    else:
+
+        response_object['reviews'] = [review.serialize() for review in Review.query.all()]
+    return jsonify(response_object)
+
+
+
+
+
+
+
+
+
+
+
+
 # Login
 # @app.route('/login', methods=['POST']) # Don't think this is being used...
 # def login():
@@ -567,5 +625,6 @@ if __name__ == "__main__":
     port = int(os.environ.get('PORT', 443))
     if port == 5000:
         app.debug = True
+    # app.run(host='0.0.0.0', port=port)        
     app.run(host='0.0.0.0', port=port, ssl_context='adhoc')
     # app.run(host='0.0.0.0', port=port, ssl_context=context)
