@@ -45,7 +45,7 @@
       {% if current_user.is_authenticated %}
 
           <li><a href="{{ url_for('disclaimer') }}">Disclaimer</a></li>
-          <li><a href="https://www.partners.org/For-Employees/Childcare/Parents-in-a-Pinch.aspx">Link To Child Care Resources</a></li>
+          <li><a href="https://partnershealthcarehr.service-now.com/hrportal?id=ph_kb_article&sys_id=c113fa84db2bc0d02c243ebd7c961953&kb_category=2f1ef3a8dbd00340da8538ff9d96191d#child" target="_blank">Link To Child Care Resources</a></li>
           <li><a href="{{ url_for('logout') }}">Logout</a></li>      
       {% else %}
           {% for idp in idp_dict.keys() %}
