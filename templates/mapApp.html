@@ -31,8 +31,8 @@
 
         <hr>
         <br>    
-        <label for="searchTable">Search Posts:</label>
-        <input style="width:250px" id=searchTable class="form-control" type="text" v-model="postTable.SearchQuery" placeholder="Search Posts"/>
+        <label for="searchPostTable">Search Posts:</label>
+        <input style="width:250px" id=searchPostTable class="form-control" type="text" v-model="postTable.searchQuery" placeholder="Search Posts"/>
         <br>
         <table id="table" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
             <thead>
@@ -108,7 +108,7 @@
             <tbody>
 
             <tr v-for="(post, index) in sortedPosts" :key="index">
-            <!-- <tr v-for="(post, index) in posts" :key="index"></tr> THIS IS FOR A NOTHING FANCY TABLE-->
+            <!-- <tr v-for="(post, index) in posts" :key="index"></tr> Non reactive table-->
                 <td class=notmobile>{% raw %} {{ post['date'] }} {% endraw %}</td>    
                 <td class=notmobile>{% raw %} {{ post['name'] }} {% endraw %}</td>
                 <td class=notmobile>{% raw %} {{ post['partnersID'] }} {% endraw %}</td>

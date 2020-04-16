@@ -112,6 +112,7 @@ const APP = new Vue({
     },
     computed: {
       sortedPosts:function() {
+        console.log('posts')
         return this.posts.filter((post, index) => { // first we bake in the search
           if (this.postTable.searchQuery) {
             return this.postTable.searchQuery.toLowerCase().split(' ').every(v => post.post.toLowerCase().includes(v))
@@ -135,6 +136,7 @@ const APP = new Vue({
         });
       },
       sortedReviews:function() {
+        console.log('reviews')
         return this.reviews.filter((review, index) => { // first we bake in the search
           if (this.reviewTable.searchQuery) {
             return this.reviewTable.searchQuery.toLowerCase().split(' ').every(v => review.review.toLowerCase().includes(v))
