@@ -3,4 +3,4 @@ flask_login
 flask_cors
 flask_bootstrap
 flask_sqlalchemy
-pysaml2==4.0.3
+pysaml2==5.0.0
